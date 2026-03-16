@@ -1,88 +1,64 @@
 import exp from 'express'
-import {login} from '../Services/authService.js'
+import { login } from '../Services/authService.js'
 import { register } from '../Services/authService.js';
-import {UserModel} from '../models/UserModel.js'
-
+import { UserModel } from '../models/UserModel.js'
+import { verifyToken } from '../middleware/verifyToken.js';
 
 export const commonRouter = exp.Router();
 
+// Register: Public
+commonRouter.post('/register',(async (req, res) => {
+    const newUserObj = await register({ ...req.body, role: "USER" });
+    res.status(201).json({ message: "user created", payload: newUserObj });
+}));
 
-//register user
-commonRouter.post('/register',async (req,res)=>{
-    //get user from req
-    let userObj = req.body
-    //call register
-    const newUserObj = await register({ ...userObj, role: "USER" })
-    //send res
-    res.status(201).json({ message: "user created", payload: newUserObj })
-})
+// Login: Public
+commonRouter.post("/login",(async (req, res) => {
+    const { token, user } = await login(req.body);
+    res.cookie('token', token, { httpOnly: true, sameSite: "lax", secure: false });
+    res.json({ message: "Login successful", token, payload: { userId: user._id, email: user.email, role: user.role } });
+}));
 
-//login user
-commonRouter.post('/login',async (req,res)=>{
-
-});
-
-
-//login route
-commonRouter.post("/login",async(req,res)=>{
-        
-            //get user CRED object
-            let userCRED = req.body
-            //call authenticate service
-            let { token,user } = await login(userCRED)
-            //save token as HTTPonly cookie
-            res.cookie('token', token, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false
-        })
-        //send res
-        const { _id, email, role } = user;
-        res.json({
-  message: "Login successful",
-  token: token,
-  payload: { userId: _id, email, role }
-})
-    
-});
-
-//logout route
-commonRouter.post('/logout',()=>{
-    res.clearCookie('token',{
-        httpOnly:true,
-        sameSite:"lax",
-        secure:false
-    });
-
-    res.json({message:"logout successfully"});
+// Logout: Protected
+commonRouter.post('/logout', verifyToken("USER", "ADMIN"), (req, res) => {
+    res.clearCookie('token');
+    res.json({ message: "logout successfully" });
 });
 
 //change password
-commonRouter.put('/changepassword',async (req,res)=>{
+commonRouter.put("/changepassword", verifyToken("USER", "ADMIN"), async (req, res, next) => {
     try {
-        let userCRED = req.body;
 
-        // call login properly
-        let { user } = await login({
-            email: userCRED.email,
-            password: userCRED.password
-        });
+        const userId = req.user.userId
+        const { password, newPassword } = req.body
 
-        // get result document
-        let userDoc = await UserModel.findOne({ email: user.email });
+        const userDoc = await UserModel.findById(userId)
 
-        //hash the new password
-        let newHashedPassword = await bcrypt.hash(userCRED.newPassword, 10);
+        const isMatch = await bcrypt.compare(password, userDoc.password)
 
-        //insert the updated password into the document
-        userDoc.password = newHashedPassword;
+        if (!isMatch) {
+            return res.status(401).json({
+                message: "Invalid current password"
+            })
+        }
 
-        //save the doc in the database
-        await userDoc.save();
+        userDoc.password = await bcrypt.hash(newPassword, 10)
 
-        //return res
-        res.status(200).json({ message: "Password updated successfully" });
+        await userDoc.save()
+
+        res.json({
+            message: "Password updated successfully"
+        })
+
     } catch (err) {
-        next(err);
+        next(err)
     }
+})
+
+//currently logged in user
+commonRouter.get("/me",verifyToken("USER","ADMIN"),(req,res)=>{
+    res.json({
+        message:"current user",
+        payload:req.user
+    })
 })

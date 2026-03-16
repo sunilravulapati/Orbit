@@ -1,11 +1,12 @@
 import exp from "express";
 import { UserModel } from '../models/UserModel.js'
-import { deleteUser, deletePost } from '../controllers/admin.js'
+import { deleteUser, deletePost,activatePost,activateUser } from '../controllers/admin.js'
+import { verifyToken } from "../middleware/verifyToken.js";
 
 export const adminRoute = exp.Router()
 
 //get all the users
-adminRoute.get('/users', async (req, res) => {
+adminRoute.get('/users', verifyToken("ADMIN"),async (req, res) => {
     //find all the users
     let users = await UserModel.find()
     //if not found
@@ -17,6 +18,10 @@ adminRoute.get('/users', async (req, res) => {
 })
 
 //block user
-adminRoute.delete('/del-user/:userId', deleteUser)
+adminRoute.delete('/del-user/:userId',verifyToken("ADMIN"), deleteUser)
 //remove the post
-adminRoute.delete('/del-post/:postId', deletePost)
+adminRoute.delete('/del-post/:postId', verifyToken("ADMIN"),deletePost)
+//activate the user
+adminRoute.patch('/activate-user/:userId', verifyToken("ADMIN"), activateUser);
+//activate the post
+adminRoute.patch('/activate-post/:postId', verifyToken("ADMIN"), activatePost);

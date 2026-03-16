@@ -1,29 +1,59 @@
-GET http://localhost:4000/user-api/users
-
-###admin api
-GET http://localhost:4000/admin-api/users
-
-### post's creation
-POST http://localhost:4000/post-api/create-post
+### 1. COMMON API (Register/Login/Logout)
+POST http://localhost:4000/common-api/register
 Content-Type: application/json
 
 {
-  "author": "69b7a10a72e09f12c6c0cfc5",
-  "text": "This is my first post"
+  "firstName": "adam",
+  "lastName": "dr",
+  "username": "adam1",
+  "email": "adam@mail.com",
+  "password": "password123"
 }
 
-### post's creation with images
+### Login (Sets HttpOnly Cookie)
+POST http://localhost:4000/common-api/login
+Content-Type: application/json
+
+{
+  "email": "sunil@mail.com",
+  "password": "sunil123"
+}
+
+### Get current logged in user
+GET http://localhost:4000/common-api/me
+
+### Logout
+POST http://localhost:4000/common-api/logout
+
+
+### 2. POST API
+### Feed (Posts from followed users)
+GET http://localhost:4000/post-api/feed
+
+### Get all posts of a specific user
+GET http://localhost:4000/post-api/user/69b813acc922e4d781d11ef6
+
+### Update the post
+PATCH http://localhost:4000/post-api/update-post/69b817e405ea38ab65202718
+Content-Type: application/json
+
+{
+  "text": "This is an updated post text."
+}
+
+### Delete the post (Soft Delete)
+DELETE http://localhost:4000/post-api/delete-post/69b817e405ea38ab65202718
+
+### 3. USER API
+
+###create a post - with image
 POST http://localhost:4000/post-api/create-post
 Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
-Content-Disposition: form-data; name="author"
-
-69b7a10a72e09f12c6c0cfc5
---boundary
 Content-Disposition: form-data; name="text"
 
-This is my first image post
+This is my first image post on Orbit!
 --boundary
 Content-Disposition: form-data; name="image"; filename="test.jpg"
 Content-Type: image/jpeg
@@ -31,32 +61,90 @@ Content-Type: image/jpeg
 < ./test.jpeg
 --boundary--
 
-###post like
-POST http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/like
+###create a post - without image
+POST http://localhost:4000/post-api/create-post
 Content-Type: application/json
 
 {
- "userId":"69b7a197ab280620625bf25f"
+  "text": "This is a plain text post. Orbit is a good website to connect!"
 }
 
-###post unlike
-POST http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/unlike
+### Update the post
+PATCH http://localhost:4000/post-api/update-post/69b817e405ea38ab65202718
 Content-Type: application/json
 
 {
- "userId":"69b7a197ab280620625bf25f"
+  "text": "This is an updated post text."
 }
 
-###add comments to a post
-POST http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/comment
+### Change user details (Profile Update)
+PATCH http://localhost:4000/user-api/update-user
 Content-Type: application/json
 
 {
- "userId":"69b7a197ab280620625bf25f",
+  "bio": "New bio update",
+  "profileImageUrl": "new_url_here"
+}
+
+###create comments
+POST http://localhost:4000/post-api/69b817e405ea38ab65202718/comment
+Content-Type: application/json
+
+{
  "text":"Nice post!"
 }
+###delete the comments
+DELETE http://localhost:4000/post-api/69b817e405ea38ab65202718/comment/COMMENT_ID
+###get comments
+GET http://localhost:4000/post-api/69b817e405ea38ab65202718/comments
+### Like a post
+POST http://localhost:4000/post-api/69b817e405ea38ab65202718/like
 
-###remove the comment
-DELETE http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/comment/69b7cf3c007b5a95a5abbe8f
-### get the comments of the post
-GET http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/comments
+### Get all posts (explore page)
+GET http://localhost:4000/post-api/all
+
+### Unlike a post
+POST http://localhost:4000/post-api/69b817e405ea38ab65202718/unlike
+
+### Follow user
+POST http://localhost:4000/user-api/follow/69b820ced4fb55a3e1aeda25
+
+### Unfollow user
+POST http://localhost:4000/user-api/unfollow/69b813acc922e4d781d11ef6
+
+### Get following list
+GET http://localhost:4000/user-api/following/69b813acc922e4d781d11ef6
+
+### Get followers list
+GET http://localhost:4000/user-api/followers/69b813acc922e4d781d11ef6
+
+### View all posts of a user (including self)
+GET http://localhost:4000/post-api/user/69b813acc922e4d781d11ef6
+
+### 4. ADMIN API
+### Login (Sets HttpOnly Cookie)
+POST http://localhost:4000/common-api/login
+Content-Type: application/json
+
+{
+  "email": "admin@mail.com",
+  "password": "admin123"
+}
+
+### Logout
+POST http://localhost:4000/common-api/logout
+
+### Get all users (Admin view)
+GET http://localhost:4000/admin-api/users
+
+### Admin: Block/Delete User
+DELETE http://localhost:4000/admin-api/del-user/69b813acc922e4d781d11ef6
+
+### Admin: Force remove post
+DELETE http://localhost:4000/admin-api/del-post/69b817e405ea38ab65202718
+
+### Admin: Reactivate User
+PATCH http://localhost:4000/admin-api/activate-user/69b813acc922e4d781d11ef6
+
+### Admin: Reactivate Post
+PATCH http://localhost:4000/admin-api/activate-post/69b817e405ea38ab65202718

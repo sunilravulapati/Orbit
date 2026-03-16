@@ -1,4 +1,5 @@
 import { UserModel } from "../models/UserModel.js"
+import {PostModel} from '../models/PostModel.js'
 
 //remove the user(deactivate the user):soft delete
 export const deleteUser = async (req, res) => {
@@ -12,6 +13,13 @@ export const deleteUser = async (req, res) => {
     res.json({ message: "user removed" })
 }
 
+//activate the user
+export const activateUser = (async (req, res) => {
+    const { userId } = req.params;
+    await UserModel.findByIdAndUpdate(userId, { isActive: true });
+    res.json({ message: "User account reactivated" });
+});
+
 //remove the post(deactivate the user):soft delete
 export const deletePost = async (req, res) => {
     //get the post id
@@ -23,3 +31,10 @@ export const deletePost = async (req, res) => {
     //send the res
     res.json({ message: "post removed" })
 }
+
+// Reactivate Post
+export const activatePost = (async (req, res) => {
+    const { postId } = req.params;
+    await PostModel.findByIdAndUpdate(postId, { isActive: true });
+    res.json({ message: "Post restored successfully" });
+});

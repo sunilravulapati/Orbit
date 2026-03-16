@@ -1,65 +1,72 @@
-import { Schema,model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 //custom schema for user - Followers
-const userFollowersSchema=new Schema({
-    userId:{
-        type:Schema.Types.ObjectId,
-        ref:'user',
-        required:[true,'Fllower Id is required...']
+const userFollowersSchema = new Schema({
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+        required: [true, 'Fllower Id is required...']
     }
 })
 
 //custom schema for user - following
-const userFollowingSchema=new Schema({
-    userId:{
-        type:Schema.Types.ObjectId,
-        ref:'user',
-        required:[true,'Fllower Id is required...']
+const userFollowingSchema = new Schema({
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+        required: [true, 'Fllower Id is required...']
     }
 })
 
 
 //user schema
-const userSchema=new Schema({
-    firstName:{
-        type:String,
-        required:[true,"First Name is required"]
+const userSchema = new Schema({
+    firstName: {
+        type: String,
+        required: [true, "First Name is required"]
     },
-    lastName:{
-        type:String,
+    lastName: {
+        type: String,
     },
-    email:{
-        type:String,
-        required:[true,"Email is required"],
-        unique:[true,'Email already existed']
+    username: {
+        type: String,
+        required: [true, "Username is required"],
+        unique: [true, "Username already exists"],
+        minlength: 3,
+        maxlength: 20
     },
-    password:{
-        type:String,
-        required:[true,"Password is required"]
+    email: {
+        type: String,
+        required: [true, "Email is required"],
+        unique: [true, 'Email already existed']
     },
-    profileImageUrl:{
-        type:String
+    password: {
+        type: String,
+        required: [true, "Password is required"]
     },
-    role:{
-        type:String,
-        enum:['USER','ADMIN'],
-        required:[true,"{Value} is invalid role"],
-        default:'USER'
+    profileImageUrl: {
+        type: String
     },
-    isActive:{
-        type:Boolean,
-        default:true
+    role: {
+        type: String,
+        enum: ['USER', 'ADMIN'],
+        required: [true, "{Value} is invalid role"],
+        default: 'USER'
     },
-    followers:[userFollowersSchema],
-    following:[userFollowingSchema],
-    bio:{
-        type:String,
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    followers: [userFollowersSchema],
+    following: [userFollowingSchema],
+    bio: {
+        type: String,
     }
-},{
-    timestamps:true,
-    strict:"throw",
-    versionKey:false
+}, {
+    timestamps: true,
+    strict: "throw",
+    versionKey: false
 })
 
 //export the usermodel
-export const UserModel=model('user',userSchema);
+export const UserModel = model('user', userSchema);
