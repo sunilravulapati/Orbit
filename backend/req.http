@@ -1,0 +1,62 @@
+GET http://localhost:4000/user-api/users
+
+###admin api
+GET http://localhost:4000/admin-api/users
+
+### post's creation
+POST http://localhost:4000/post-api/create-post
+Content-Type: application/json
+
+{
+  "author": "69b7a10a72e09f12c6c0cfc5",
+  "text": "This is my first post"
+}
+
+### post's creation with images
+POST http://localhost:4000/post-api/create-post
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="author"
+
+69b7a10a72e09f12c6c0cfc5
+--boundary
+Content-Disposition: form-data; name="text"
+
+This is my first image post
+--boundary
+Content-Disposition: form-data; name="image"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test.jpeg
+--boundary--
+
+###post like
+POST http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/like
+Content-Type: application/json
+
+{
+ "userId":"69b7a197ab280620625bf25f"
+}
+
+###post unlike
+POST http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/unlike
+Content-Type: application/json
+
+{
+ "userId":"69b7a197ab280620625bf25f"
+}
+
+###add comments to a post
+POST http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/comment
+Content-Type: application/json
+
+{
+ "userId":"69b7a197ab280620625bf25f",
+ "text":"Nice post!"
+}
+
+###remove the comment
+DELETE http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/comment/69b7cf3c007b5a95a5abbe8f
+### get the comments of the post
+GET http://localhost:4000/post-api/69b7a6459c6ec8cb0d5a410f/comments
