@@ -1,141 +1,152 @@
 import exp from "express";
 import { UserModel } from '../models/UserModel.js'
+import { PostModel } from '../models/PostModel.js' // 👈 was missing!
 import { verifyToken } from "../middleware/verifyToken.js";
 
 export const userRoute = exp.Router()
 
-//get all users - for testing
+// get all users
 userRoute.get('/users', async (req, res) => {
-  //find all the users
-  let users = await UserModel.find()
-  //if not found
-  if (!users) {
-    return res.status(404).json({ message: "no users found! please add the users" })
-  }
-  //return res
-  res.status(200).json({ message: "users: ", payload: users })
-})
+    let users = await UserModel.find()
+    if (!users) {
+        return res.status(404).json({ message: "no users found!" })
+    }
+    res.status(200).json({ message: "users: ", payload: users })
+});
 
 // follow user
 userRoute.post("/follow/:userId", verifyToken("USER"), async (req, res) => {
-  //get the details
-  const followerId = req.user.userId; // logged in user
-  const followingId = req.params.userId; // user to follow
+    const followerId = req.user.userId;
+    const followingId = req.params.userId;
 
-  //check if the user is following him/her-self(not allowed)
-  if (followerId === followingId) {
-    return res.status(400).json({
-      message: "cannot follow yourself",
-    });
-  }
-  //find the users
-  const followerUser = await UserModel.findById(followerId);
-  const followingUser = await UserModel.findById(followingId);
-  if (!followerUser || !followingUser) {
-    return res.status(404).json({
-      message: "user not found",
-    });
-  }
-  // check already they are already following
-  const alreadyFollowing = followerUser.following.some(
-    (f) => f.userId.toString() === followingId
-  );
-  if (alreadyFollowing) {
-    return res.status(400).json({
-      message: "already following this user",
-    });
-  }
-  // update following list
-  followerUser.following.push({ userId: followingId });
-  // update followers list
-  followingUser.followers.push({ userId: followerId });
-  //save it to db
-  await followerUser.save();
-  await followingUser.save();
-  //send res
-  res.status(200).json({
-    message: "followed successfully",
-  });
+    if (followerId === followingId) {
+        return res.status(400).json({ message: "cannot follow yourself" });
+    }
+
+    const followerUser = await UserModel.findById(followerId);
+    const followingUser = await UserModel.findById(followingId);
+    if (!followerUser || !followingUser) {
+        return res.status(404).json({ message: "user not found" });
+    }
+
+    const alreadyFollowing = followerUser.following.some(
+        (f) => f.userId.toString() === followingId
+    );
+    if (alreadyFollowing) {
+        return res.status(400).json({ message: "already following this user" });
+    }
+
+    followerUser.following.push({ userId: followingId });
+    followingUser.followers.push({ userId: followerId });
+    await followerUser.save();
+    await followingUser.save();
+
+    res.status(200).json({ message: "followed successfully" });
 });
-
 
 // unfollow user
 userRoute.post("/unfollow/:userId", verifyToken("USER"), async (req, res) => {
-  //get the details
-  const followerId = req.user.userId;
-  const followingId = req.params.userId;
+    const followerId = req.user.userId;
+    const followingId = req.params.userId;
 
-  //find the users
-  const followerUser = await UserModel.findById(followerId);
-  const followingUser = await UserModel.findById(followingId);
-  if (!followerUser || !followingUser) {
-    return res.status(404).json({
-      message: "user not found",
-    });
-  }
-  // remove from following
-  followerUser.following = followerUser.following.filter(
-    (f) => f.userId.toString() !== followingId
-  );
-  // remove from followers
-  followingUser.followers = followingUser.followers.filter(
-    (f) => f.userId.toString() !== followerId
-  );
+    const followerUser = await UserModel.findById(followerId);
+    const followingUser = await UserModel.findById(followingId);
+    if (!followerUser || !followingUser) {
+        return res.status(404).json({ message: "user not found" });
+    }
 
-  //save it to db
-  await followerUser.save();
-  await followingUser.save();
+    followerUser.following = followerUser.following.filter(
+        (f) => f.userId.toString() !== followingId
+    );
+    followingUser.followers = followingUser.followers.filter(
+        (f) => f.userId.toString() !== followerId
+    );
 
-  //send res
-  res.status(200).json({
-    message: "unfollowed successfully",
-  });
+    await followerUser.save();
+    await followingUser.save();
+
+    res.status(200).json({ message: "unfollowed successfully" });
 });
-
 
 // get followers
 userRoute.get("/followers/:userId", verifyToken("USER"), async (req, res) => {
-  const user = await UserModel.findById(req.params.userId)
-    .populate("followers.userId", "firstName lastName profileImageUrl");
-  //send res
-  res.status(200).json({
-    message: "followers fetched",
-    payload: user.followers,
-  });
+    const user = await UserModel.findById(req.params.userId)
+        .populate("followers.userId", "firstName lastName profileImageUrl");
+    res.status(200).json({ message: "followers fetched", payload: user.followers });
 });
 
 // get following
 userRoute.get("/following/:userId", verifyToken("USER"), async (req, res) => {
-  const user = await UserModel.findById(req.params.userId)
-    .populate("following.userId", "firstName lastName profileImageUrl");
-  //send res
-  res.status(200).json({
-    message: "following fetched",
-    payload: user.following,
-  });
+    const user = await UserModel.findById(req.params.userId)
+        .populate("following.userId", "firstName lastName profileImageUrl");
+    res.status(200).json({ message: "following fetched", payload: user.following });
 });
 
-//user details update
+// update user profile
 userRoute.patch('/update-user', verifyToken('USER'), async (req, res) => {
-  const userId = req.user.userId;
-  const updates = req.body;
+    const userId = req.user.userId;
+    const updates = req.body;
 
-  // Security: Only allow specific fields to be updated via this route
-  const allowedUpdates = ["firstName", "lastName", "username", "bio", "profileImageUrl"];
-  const filteredUpdates = {};
+    const allowedUpdates = ["firstName", "lastName", "username", "bio", "profileImageUrl"];
+    const filteredUpdates = {};
+    Object.keys(updates).forEach((key) => {
+        if (allowedUpdates.includes(key)) filteredUpdates[key] = updates[key];
+    });
 
-  Object.keys(updates).forEach((key) => {
-    if (allowedUpdates.includes(key)) filteredUpdates[key] = updates[key];
-  });
+    const updatedUser = await UserModel.findByIdAndUpdate(
+        userId,
+        { $set: filteredUpdates },
+        { new: true, runValidators: true }
+    ).select("-password");
 
-  const updatedUser = await UserModel.findByIdAndUpdate(
-    userId,
-    { $set: filteredUpdates },
-    { new: true, runValidators: true }
-  ).select("-password"); // Never return the hashed password in the response
+    res.status(200).json({ message: "Profile updated successfully", payload: updatedUser });
+});
 
-  res.status(200).json({
-    message: "Profile updated successfully",
-    payload: updatedUser
-  });
+// toggle bookmark
+userRoute.put('/bookmarks/:postId', verifyToken("USER"), async (req, res) => { // 👈 fixed: verifyToken("USER")
+    const userId = req.user.userId;
+    const { postId } = req.params;
+
+    const user = await UserModel.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const post = await PostModel.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const bookmarkIndex = user.bookmarks.findIndex(
+        (b) => b.postId.toString() === postId
+    );
+
+    if (bookmarkIndex > -1) {
+        user.bookmarks.splice(bookmarkIndex, 1);
+        await user.save();
+        return res.status(200).json({ message: "Removed from bookmarks" });
+    } else {
+        user.bookmarks.push({ postId }); // 👈 fixed: only postId, no isActive (not in schema)
+        await user.save();
+        return res.status(200).json({ message: "Added to bookmarks" });
+    }
+});
+
+// get bookmarks
+userRoute.get('/bookmarks', verifyToken("USER"), async (req, res) => { // 👈 fixed: verifyToken("USER")
+    const userId = req.user.userId;
+
+    const user = await UserModel.findById(userId).populate({
+        path: 'bookmarks.postId',
+        match: { isActive: true },
+        select: 'text image author likes comments createdAt',
+        populate: {
+            path: 'author',
+            select: 'firstName username profileImageUrl' // 👈 added username
+        }
+    }).select('bookmarks').lean();
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const bookmarkPosts = user.bookmarks
+        .filter(b => b.postId)
+        .map(b => b.postId);
+
+    res.status(200).json({ message: "Bookmarks retrieved", payload: bookmarkPosts });
 });

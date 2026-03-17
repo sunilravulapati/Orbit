@@ -18,6 +18,14 @@ const userFollowingSchema = new Schema({
     }
 })
 
+//custom schema for the bookmarks
+const bookmarkSchema = new Schema({
+    postId: {
+        type: Schema.Types.ObjectId,
+        ref: 'post',
+        required: [true, 'Post Id is required']
+    }
+})
 
 //user schema
 const userSchema = new Schema({
@@ -61,7 +69,8 @@ const userSchema = new Schema({
     following: [userFollowingSchema],
     bio: {
         type: String,
-    }
+    },
+    bookmarks:[bookmarkSchema],
 }, {
     timestamps: true,
     strict: "throw",

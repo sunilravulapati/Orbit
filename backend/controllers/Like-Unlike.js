@@ -4,7 +4,7 @@ import { PostModel } from "../models/PostModel.js";
 export const likePost = async (req, res) => {
     //get the postId from the req
     let { postId } = req.params;
-    let userId = req.user.userid
+    let userId = req.user.userId
     //find the post
     let post = await PostModel.findById(postId)
     if (!post) {
@@ -29,7 +29,7 @@ export const likePost = async (req, res) => {
 export const unlikePost = async (req, res) => {
     //get the details from the params and the body
     const { postId } = req.params
-    const userId = req.user.userid
+    const userId = req.user.userId
     //find the post
     const post = await PostModel.findById(postId)
     if (!post) {
