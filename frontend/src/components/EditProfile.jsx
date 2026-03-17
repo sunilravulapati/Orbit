@@ -18,7 +18,6 @@ const EditProfile = () => {
     const [loading, setLoading] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState(user?.profileImageUrl || null);
     const [avatarFile, setAvatarFile] = useState(null);
-    const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const fileInputRef = useRef(null);
     const navigate = useNavigate();
 
@@ -28,50 +27,52 @@ const EditProfile = () => {
             setAvatarFile(file);
             setAvatarPreview(URL.createObjectURL(file));
         }
-    }
-
-    const uploadAvatar = async () => {
-        if (!avatarFile) return;
-        setUploadingAvatar(true);
-        try {
-            const formData = new FormData();
-            formData.append("image", avatarFile);
-            const res = await axios.patch(
-                `${USER_API_END_POINT}/update-avatar`,
-                formData,
-                { withCredentials: true }
-            );
-            updateUser({ profileImageUrl: res.data.payload.profileImageUrl });
-            toast.success("Profile picture updated!");
-            setAvatarFile(null);
-        } catch (error) {
-            toast.error(error?.response?.data?.error || "Upload failed");
-        }
-        setUploadingAvatar(false);
-    }
+    };
 
     const submitHandler = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            // upload avatar first if changed
-            if (avatarFile) await uploadAvatar();
+            let currentProfileImageUrl = user?.profileImageUrl;
 
-            const res = await axios.patch(`${USER_API_END_POINT}/update-user`,
-                { firstName, lastName, username, bio },
+            // Upload avatar if new file selected
+            if (avatarFile) {
+                const formData = new FormData();
+                formData.append("image", avatarFile);
+
+                const uploadRes = await axios.patch(
+                    `${USER_API_END_POINT}/update-avatar`,
+                    formData,
+                    {
+                        withCredentials: true,
+                        headers: { "Content-Type": "multipart/form-data" }
+                    }
+                );
+
+                currentProfileImageUrl = uploadRes.data.payload.profileImageUrl;
+            }
+
+            // Update profile
+            await axios.patch(
+                `${USER_API_END_POINT}/update-user`,
+                { firstName, lastName, username, bio, profileImageUrl: currentProfileImageUrl },
                 { withCredentials: true }
             );
-            updateUser({ firstName, lastName, username, bio });
-            toast.success(res.data.message);
+
+            // Update global store
+            updateUser({ firstName, lastName, username, bio, profileImageUrl: currentProfileImageUrl });
+
+            toast.success("Profile updated!");
             navigate(-1);
         } catch (error) {
-            toast.error(error?.response?.data?.error || "Something went wrong");
+            toast.error(error?.response?.data?.error || "Update failed");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
-    }
+    };
 
     return (
-        <div className='w-[50%] border-l border-r border-orbit-border min-h-screen'>
+        <div className='w-full border-l border-r border-orbit-border min-h-screen'>
             {/* Header */}
             <div className='flex items-center py-2 px-3 border-b border-orbit-border bg-orbit-bg sticky top-0 z-10'>
                 <Link to={`/profile/${user?.userId}`} className='p-2 rounded-full hover:bg-orbit-card cursor-pointer'>
@@ -157,15 +158,15 @@ const EditProfile = () => {
                     </div>
                     <button
                         type="submit"
-                        disabled={loading || uploadingAvatar}
+                        disabled={loading}
                         className='bg-orbit-teal-dark hover:bg-orbit-teal hover:text-orbit-bg text-white py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
                     >
-                        {loading || uploadingAvatar ? "Saving..." : "Save Changes"}
+                        {loading ? "Saving..." : "Save Changes"}
                     </button>
                 </form>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default EditProfile;

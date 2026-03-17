@@ -7,6 +7,7 @@ import { POST_API_END_POINT, timeSince } from '../utils/constant';
 import toast from "react-hot-toast";
 import useUserStore from '../store/useUserStore';
 import useTweetStore from '../store/useTweetStore';
+import { useNavigate } from 'react-router-dom';
 
 const Tweet = ({ tweet }) => {
     const [activeCommentId, setActiveCommentId] = useState(null);
@@ -17,7 +18,14 @@ const Tweet = ({ tweet }) => {
     const toggleBookmark = useTweetStore((state) => state.toggleBookmark);
     const bookmarks = useTweetStore((state) => state.bookmarks);
 
-    const likeOrDislikeHandler = async (id) => {
+    const navigate = useNavigate();
+
+    const handleTweetClick = () => {
+        navigate(`/tweet/${tweet._id}`);
+    };
+
+    const likeOrDislikeHandler = async (e, id) => {
+        e.stopPropagation();
         try {
             const isLiked = tweet?.likes?.some(like => like.userId === user?.userId);
             if (isLiked) {
@@ -33,7 +41,8 @@ const Tweet = ({ tweet }) => {
         }
     };
 
-    const commentHandler = async (postId) => {
+    const commentHandler = async (e, postId) => {
+        e.stopPropagation();
         if (!commentText.trim()) return toast.error("Comment cannot be empty");
         try {
             await axios.post(
@@ -50,8 +59,8 @@ const Tweet = ({ tweet }) => {
         }
     };
 
-    // Step 1 — show confirmation toast
-    const deleteTweetHandler = (postId) => {
+    const deleteTweetHandler = (e, postId) => {
+        e.stopPropagation();
         toast((t) => (
             <div className="flex flex-col gap-2">
                 <span className="text-sm font-medium text-gray-800">
@@ -67,7 +76,7 @@ const Tweet = ({ tweet }) => {
                     <button
                         onClick={() => {
                             toast.dismiss(t.id);
-                            confirmDelete(postId); // 👈 dismiss first, then delete
+                            confirmDelete(postId);
                         }}
                         className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-colors"
                     >
@@ -78,11 +87,10 @@ const Tweet = ({ tweet }) => {
         ), { duration: 5000, position: 'top-center' });
     };
 
-    // Step 2 — actually delete
     const confirmDelete = async (postId) => {
         try {
             await axios.delete(
-                `${POST_API_END_POINT}/delete-post/${postId}`, // 👈 fixed: was /delete/, correct route is /delete-post/
+                `${POST_API_END_POINT}/delete-post/${postId}`,
                 { withCredentials: true }
             );
             toast.success("Post deleted");
@@ -97,7 +105,10 @@ const Tweet = ({ tweet }) => {
     const authorName = tweet?.author?.firstName || tweet?.author?.username || "User";
 
     return (
-        <div className='border-b border-orbit-border hover:bg-orbit-card transition-colors cursor-pointer'>
+        <div
+            onClick={handleTweetClick}
+            className='border-b border-orbit-border hover:bg-orbit-card transition-colors cursor-pointer'
+        >
             <div className='flex gap-3 p-4'>
                 <div className='w-9 h-9 rounded-full bg-orbit-teal-dark border-2 border-orbit-teal flex items-center justify-center text-orbit-teal font-medium text-sm shrink-0'>
                     {tweet?.author?.profileImageUrl ? (
@@ -123,7 +134,8 @@ const Tweet = ({ tweet }) => {
 
                         {/* Comment */}
                         <div
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 setActiveCommentId(activeCommentId === tweet._id ? null : tweet._id);
                                 setCommentText("");
                             }}
@@ -135,7 +147,7 @@ const Tweet = ({ tweet }) => {
 
                         {/* Like */}
                         <div
-                            onClick={() => likeOrDislikeHandler(tweet?._id)}
+                            onClick={(e) => likeOrDislikeHandler(e, tweet?._id)}
                             className={`flex items-center gap-1 transition-colors cursor-pointer ${isLiked ? 'text-pink-400' : 'text-orbit-faint hover:text-pink-400'}`}
                         >
                             <CiHeart size="17px" />
@@ -144,7 +156,10 @@ const Tweet = ({ tweet }) => {
 
                         {/* Bookmark */}
                         <div
-                            onClick={() => toggleBookmark(tweet)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleBookmark(tweet);
+                            }}
                             className={`flex items-center gap-1 transition-colors cursor-pointer ${isBookmarked ? 'text-orbit-teal' : 'text-orbit-faint hover:text-orbit-teal'}`}
                         >
                             <CiBookmark size="17px" />
@@ -153,7 +168,7 @@ const Tweet = ({ tweet }) => {
                         {/* Delete — only visible to post author */}
                         {user?.userId === tweet?.author?._id && (
                             <div
-                                onClick={() => deleteTweetHandler(tweet?._id)}
+                                onClick={(e) => deleteTweetHandler(e, tweet?._id)}
                                 className='flex items-center gap-1 text-orbit-faint hover:text-red-400 transition-colors cursor-pointer'
                             >
                                 <MdOutlineDeleteOutline size="17px" />
@@ -163,18 +178,23 @@ const Tweet = ({ tweet }) => {
 
                     {/* Comment input */}
                     {activeCommentId === tweet._id && (
-                        <div className='mt-3 flex gap-2'>
+                        <div
+                            onClick={(e) => e.stopPropagation()}
+                            className='mt-3 flex gap-2'
+                        >
                             <input
                                 type="text"
                                 value={commentText}
                                 onChange={(e) => setCommentText(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && commentHandler(tweet._id)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') commentHandler(e, tweet._id);
+                                }}
                                 placeholder="Write a comment..."
                                 className="flex-1 bg-orbit-bg border border-orbit-border rounded-lg px-3 py-1.5 text-xs text-orbit-text outline-none focus:border-orbit-teal transition-colors"
                                 autoFocus
                             />
                             <button
-                                onClick={() => commentHandler(tweet._id)}
+                                onClick={(e) => commentHandler(e, tweet._id)}
                                 className="bg-orbit-teal-dark text-white px-3 py-1 rounded-lg text-xs font-medium hover:bg-orbit-teal transition-colors"
                             >
                                 Reply

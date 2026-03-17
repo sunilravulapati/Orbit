@@ -1,6 +1,8 @@
 import './App.css';
 import Body from './components/Body';
 import { Toaster } from "react-hot-toast";
+import axios from 'axios';
+axios.defaults.withCredentials = true;
 
 function App() {
     return (

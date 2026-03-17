@@ -5,7 +5,7 @@ config()
 export const verifyToken = (...allowedRoles) => {
     return async (req, res, next) => {
         // read token from cookies
-        const token = req.cookies.token
+        const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
         console.log("token:", token)
 
         if (!token) {

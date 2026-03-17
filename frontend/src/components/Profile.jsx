@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { IoMdArrowBack } from "react-icons/io";
 import { Link, useParams } from 'react-router-dom';
 import useGetProfile from '../hooks/useGetProfile';
 import axios from "axios";
-import { USER_API_END_POINT } from '../utils/constant';
+import { USER_API_END_POINT, POST_API_END_POINT } from '../utils/constant';
 import toast from "react-hot-toast";
 import useUserStore from '../store/useUserStore';
 import useTweetStore from '../store/useTweetStore';
@@ -16,6 +16,20 @@ const Profile = () => {
     const profile = useUserStore((state) => state.profile);
     const followingUpdate = useUserStore((state) => state.followingUpdate);
     const toggleRefresh = useTweetStore((state) => state.toggleRefresh);
+
+    const [posts, setPosts] = useState([]);
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const res = await axios.get(`${POST_API_END_POINT}/user/${id}`, { withCredentials: true });
+                setPosts(res.data.payload || []);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchPosts();
+    }, [id]);
 
     const followAndUnfollowHandler = async () => {
         const isFollowing = user?.following?.some(f => f.userId === id);
@@ -33,7 +47,7 @@ const Profile = () => {
         } catch (error) {
             toast.error(error?.response?.data?.error || "Something went wrong");
         }
-    }
+    };
 
     const isFollowing = user?.following?.some(f => f.userId === id);
     const isOwnProfile = profile?._id === user?.userId;
@@ -43,7 +57,7 @@ const Profile = () => {
         : profile?.username || "User";
 
     return (
-        <div className='w-[50%] border-l border-r border-orbit-border min-h-screen'>
+        <div className='w-full border-l border-r border-orbit-border min-h-screen'>
 
             {/* Header */}
             <div className='flex items-center py-2 px-3 border-b border-orbit-border bg-orbit-bg sticky top-0 z-10'>
@@ -104,8 +118,26 @@ const Profile = () => {
                     </span>
                 </div>
             </div>
+
+            {/* User posts */}
+            <div className='mt-6 px-4'>
+                <h2 className='text-orbit-text font-bold mb-4'>Posts</h2>
+                {posts.length > 0 ? (
+                    posts.map(post => (
+                        <div key={post._id} className='border-b border-orbit-border py-4'>
+                            <p className='text-orbit-text text-base mb-2'>{post.text}</p>
+                            {post.image?.url && (
+                                <img src={post.image.url} alt="post" className='rounded-xl w-[50%] border border-orbit-border mb-2' />
+                            )}
+                            <p className='text-orbit-faint text-xs'>{new Date(post.createdAt).toLocaleString()}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p className='text-orbit-faint text-center py-10'>No posts yet.</p>
+                )}
+            </div>
         </div>
-    )
-}
+    );
+};
 
 export default Profile;

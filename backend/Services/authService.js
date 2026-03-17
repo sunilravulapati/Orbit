@@ -60,4 +60,5 @@ export const login = async ({ email, password }) => {
     delete newUserObj.password;
 
     return { user: newUserObj, token };
+    
 };

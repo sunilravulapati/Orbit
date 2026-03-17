@@ -1,7 +1,10 @@
 import exp from "express";
 import { UserModel } from '../models/UserModel.js'
-import { PostModel } from '../models/PostModel.js' // 👈 was missing!
+import { PostModel } from '../models/PostModel.js'
 import { verifyToken } from "../middleware/verifyToken.js";
+import upload from "../middleware/multer.js";
+import { v2 as cloudinary } from "cloudinary";
+
 
 export const userRoute = exp.Router()
 
@@ -81,6 +84,40 @@ userRoute.get("/following/:userId", verifyToken("USER"), async (req, res) => {
         .populate("following.userId", "firstName lastName profileImageUrl");
     res.status(200).json({ message: "following fetched", payload: user.following });
 });
+
+
+userRoute.patch('/update-avatar',verifyToken('USER'),upload.single("image"),async (req, res) => {
+    try {
+      const userId = req.user.userId;
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+
+      // Upload to Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "avatars",
+        resource_type: "image"
+      });
+
+      const profileImageUrl = result.secure_url;
+
+      const updatedUser = await UserModel.findByIdAndUpdate(
+        userId,
+        { $set: { profileImageUrl } },
+        { new: true }
+      ).select("-password");
+
+      res.status(200).json({
+        message: "Avatar updated successfully",
+        payload: updatedUser
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Server error during upload" });
+    }
+  }
+);
 
 // update user profile
 userRoute.patch('/update-user', verifyToken('USER'), async (req, res) => {

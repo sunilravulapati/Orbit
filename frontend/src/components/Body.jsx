@@ -8,6 +8,7 @@ import Explore from './Explore';
 import Notifications from './Notifications';
 import Bookmarks from './Bookmarks';
 import EditProfile from './EditProfile';
+import  TweetDetails  from './TweetDetails';
 
 const Body = () => {
     const appRouter = createBrowserRouter([
@@ -44,6 +45,10 @@ const Body = () => {
         {
             path: "/login",
             element: <Login />
+        },
+        {
+            path: "tweet/:id",
+            element: <TweetDetails />
         }
     ])
     return (

@@ -7,16 +7,26 @@ import { verifyToken } from '../middleware/verifyToken.js';
 export const commonRouter = exp.Router();
 
 // Register: Public
-commonRouter.post('/register',(async (req, res) => {
+commonRouter.post('/register', (async (req, res) => {
     const newUserObj = await register({ ...req.body, role: "USER" });
     res.status(201).json({ message: "user created", payload: newUserObj });
 }));
 
 // Login: Public
-commonRouter.post("/login",(async (req, res) => {
+// Login: Public
+commonRouter.post("/login", (async (req, res) => {
     const { token, user } = await login(req.body);
-    res.cookie('token', token, { httpOnly: true, sameSite: "lax", secure: false });
-    res.json({ message: "Login successful", token, payload: { userId: user._id, email: user.email, role: user.role } });
+    res.cookie("token", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000 // was expires:"1h" (invalid string), use maxAge in milliseconds (1 day)
+    });
+    res.json({
+        message: "Login successful",
+        token,
+        payload: { userId: user._id, email: user.email, role: user.role }
+    });
 }));
 
 // Logout: Protected
@@ -56,9 +66,9 @@ commonRouter.put("/changepassword", verifyToken("USER", "ADMIN"), async (req, re
 })
 
 //currently logged in user
-commonRouter.get("/me",verifyToken("USER","ADMIN"),(req,res)=>{
+commonRouter.get("/me", verifyToken("USER", "ADMIN"), (req, res) => {
     res.json({
-        message:"current user",
-        payload:req.user
+        message: "current user",
+        payload: req.user
     })
 })

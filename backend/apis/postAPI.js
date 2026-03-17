@@ -21,20 +21,22 @@ postRoute.delete('/delete-post/:postId', verifyToken("USER"), deletePost)
 //get the posts of the user
 postRoute.get("/user/:userId", verifyToken("USER"), getPosts);
 
+//get the post by id
+postRoute.get("/post/:postId", async (req, res) => {
+    const post = await PostModel.findById(req.params.postId)
+        .populate("author", "username firstName profileImageUrl")
+        .populate("comments.userId", "username profileImageUrl"); // Optional: populate comment authors
+    res.json({ payload: post });
+});
+
 //get all the posts 
 postRoute.get("/all", async (req, res) => {
-    const posts = await PostModel.find({
-        isActive: true
-    })
-        .populate("author", "username profileImageUrl")
-        .sort({ createdAt: -1 })
+    const posts = await PostModel.find({ isActive: true })
+        .populate("author", "username firstName profileImageUrl") // 👈 added firstName
+        .sort({ createdAt: -1 });
 
-    res.json({
-        message: "all posts",
-        payload: posts
-    })
-})
-
+    res.json({ message: "all posts", payload: posts });
+});
 // like post
 postRoute.post("/:postId/like", verifyToken("USER"), likePost);
 
