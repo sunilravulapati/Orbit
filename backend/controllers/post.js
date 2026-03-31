@@ -86,7 +86,11 @@ export const getPosts = async (req, res) => {
     const posts = await PostModel.find({
         author: userId,
         isActive: true
-    }).sort({ createdAt: -1 })
+    })
+    .sort({ createdAt: -1 })
+    .populate('author', 'firstName lastName username profileImageUrl')
+    .populate('comments.userId', 'username firstName profileImageUrl') // ✅ add this
+
     res.json({
         message: "user posts",
         payload: posts

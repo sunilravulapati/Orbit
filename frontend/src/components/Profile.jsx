@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoMdArrowBack } from "react-icons/io";
+import { CiCalendar } from "react-icons/ci";
 import { Link, useParams } from 'react-router-dom';
 import useGetProfile from '../hooks/useGetProfile';
 import axios from "axios";
@@ -7,6 +8,10 @@ import { USER_API_END_POINT, POST_API_END_POINT } from '../utils/constant';
 import toast from "react-hot-toast";
 import useUserStore from '../store/useUserStore';
 import useTweetStore from '../store/useTweetStore';
+import Tweet from './Tweet';
+import TweetSkeleton from './TweetSkeleton';
+
+const TABS = ["Posts", "Replies", "Likes"];
 
 const Profile = () => {
     const { id } = useParams();
@@ -16,31 +21,89 @@ const Profile = () => {
     const profile = useUserStore((state) => state.profile);
     const followingUpdate = useUserStore((state) => state.followingUpdate);
     const toggleRefresh = useTweetStore((state) => state.toggleRefresh);
+    const refresh = useTweetStore((state) => state.refresh);
 
+    const [activeTab, setActiveTab] = useState("Posts");
     const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchPosts = async () => {
+            setLoading(true);
+            setPosts([]);
             try {
-                const res = await axios.get(`${POST_API_END_POINT}/user/${id}`, { withCredentials: true });
-                setPosts(res.data.payload || []);
+                if (activeTab === "Posts") {
+                    // ✅ Direct endpoint: GET /post-api/user/:id
+                    const res = await axios.get(
+                        `${POST_API_END_POINT}/user/${id}`,
+                        { withCredentials: true }
+                    );
+                    const data = res.data?.payload ?? res.data?.data ?? res.data ?? [];
+                    setPosts(Array.isArray(data) ? data : []);
+
+                } else if (activeTab === "Likes") {
+                    // No /liked/:id endpoint exists — fetch all posts and filter
+                    // by whether the user's id appears in each post's likes array
+                    const res = await axios.get(
+                        `${POST_API_END_POINT}/all`,
+                        { withCredentials: true }
+                    );
+                    const all = res.data?.payload ?? res.data?.data ?? res.data ?? [];
+                    const liked = (Array.isArray(all) ? all : []).filter(post =>
+                        post?.likes?.some(l => (l.userId?._id ?? l.userId)?.toString() === id)
+                    );
+                    setPosts(liked);
+
+                } else if (activeTab === "Replies") {
+                    // No /replied/:id endpoint exists — fetch all posts and keep
+                    // only those that have a comment authored by this user
+                    const res = await axios.get(
+                        `${POST_API_END_POINT}/all`,
+                        { withCredentials: true }
+                    );
+                    const all = res.data?.payload ?? res.data?.data ?? res.data ?? [];
+                    const replied = (Array.isArray(all) ? all : []).filter(post =>
+                        post?.comments?.some(c =>
+                            c.userId === id ||
+                            c.userId?._id === id ||
+                            c.userId?._id?.toString() === id
+                        )
+                    );
+                    setPosts(replied);
+                }
             } catch (error) {
-                console.error(error);
+                console.error("Error fetching posts:", error);
+                if (error?.response?.status !== 404) {
+                    toast.error("Failed to load posts");
+                }
+                setPosts([]);
+            } finally {
+                setLoading(false);
             }
         };
-        fetchPosts();
-    }, [id]);
+
+        if (id) fetchPosts();
+    }, [id, activeTab, refresh]);
 
     const followAndUnfollowHandler = async () => {
-        const isFollowing = user?.following?.some(f => f.userId === id);
+        const currentlyFollowing = profile?.followers?.some(
+            f => (f.userId?._id ?? f.userId)?.toString() === user?.userId
+        );
         try {
-            axios.defaults.withCredentials = true;
-            if (isFollowing) {
-                const res = await axios.post(`${USER_API_END_POINT}/unfollow/${id}`, {});
-                toast.success(res.data.message);
+            if (currentlyFollowing) {
+                const res = await axios.post(
+                    `${USER_API_END_POINT}/unfollow/${id}`,
+                    {},
+                    { withCredentials: true }
+                );
+                toast.success(res.data.message || "Unfollowed");
             } else {
-                const res = await axios.post(`${USER_API_END_POINT}/follow/${id}`, {});
-                toast.success(res.data.message);
+                const res = await axios.post(
+                    `${USER_API_END_POINT}/follow/${id}`,
+                    {},
+                    { withCredentials: true }
+                );
+                toast.success(res.data.message || "Followed");
             }
             followingUpdate(id);
             toggleRefresh();
@@ -49,91 +112,138 @@ const Profile = () => {
         }
     };
 
-    const isFollowing = user?.following?.some(f => f.userId === id);
-    const isOwnProfile = profile?._id === user?.userId;
-
+    const isFollowing = profile?.followers?.some(
+        f => (f.userId?._id ?? f.userId)?.toString() === user?.userId
+    );
+    const isOwnProfile = profile?._id?.toString() === user?.userId?.toString();
     const profileName = profile?.firstName
         ? `${profile.firstName} ${profile.lastName || ''}`.trim()
         : profile?.username || "User";
+    const visibleTabs = isOwnProfile ? TABS : ["Posts"];
 
     return (
-        <div className='w-full border-l border-r border-orbit-border min-h-screen'>
+        <div className='w-[50%] border-l border-r border-orbit-border min-h-screen bg-orbit-bg'>
 
             {/* Header */}
-            <div className='flex items-center py-2 px-3 border-b border-orbit-border bg-orbit-bg sticky top-0 z-10'>
-                <Link to="/" className='p-2 rounded-full hover:bg-orbit-card cursor-pointer'>
-                    <IoMdArrowBack size="24px" className='text-orbit-text' />
+            <div className='flex items-center gap-3 py-3 px-4 border-b border-orbit-border bg-orbit-bg/90 backdrop-blur sticky top-0 z-10'>
+                <Link to="/" className='p-2 rounded-full hover:bg-orbit-surface transition-colors'>
+                    <IoMdArrowBack size={20} className='text-orbit-text' />
                 </Link>
-                <div className='ml-2'>
-                    <h1 className='font-semibold text-orbit-text'>{profileName}</h1>
-                    <p className='text-orbit-faint text-xs'>Posts</p>
+                <div>
+                    <h1 className='font-bold text-[15px] text-orbit-text leading-tight'>{profileName}</h1>
+                    <p className='text-orbit-muted text-xs'>
+                        {!loading && posts.length > 0
+                            ? `${posts.length} post${posts.length !== 1 ? 's' : ''}`
+                            : 'Posts'}
+                    </p>
                 </div>
             </div>
 
             {/* Banner */}
-            <div className='h-36 w-full' style={{ background: 'linear-gradient(135deg, #0e7a5c, #1e3a5f)' }} />
+            <div
+                className='h-36 w-full'
+                style={{ background: 'linear-gradient(135deg, #0e7a5c 0%, #1a3a5c 60%, #15202b 100%)' }}
+            />
 
-            {/* Avatar + button */}
-            <div className='flex items-end justify-between px-4 -mt-10 mb-3'>
-                <div className='w-20 h-20 rounded-full bg-orbit-card border-4 border-orbit-bg flex items-center justify-center text-orbit-teal font-semibold text-2xl overflow-hidden'>
+            {/* Avatar + Action */}
+            <div className='flex items-end justify-between px-4 -mt-10 mb-4'>
+                <div className='w-[82px] h-[82px] rounded-full bg-orbit-surface border-4 border-orbit-bg flex items-center justify-center text-orbit-teal font-bold text-2xl overflow-hidden shadow-lg'>
                     {profile?.profileImageUrl ? (
                         <img src={profile.profileImageUrl} alt="avatar" className='w-full h-full object-cover' />
                     ) : (
                         profileName[0]?.toUpperCase() || "U"
                     )}
                 </div>
-                <div>
-                    {isOwnProfile ? (
-                        <Link to="/edit-profile">
-                            <button className='px-4 py-1 rounded-full border border-orbit-border text-orbit-text hover:bg-orbit-card font-medium text-sm transition-colors'>
-                                Edit Profile
-                            </button>
-                        </Link>
-                    ) : (
-                        <button
-                            onClick={followAndUnfollowHandler}
-                            className='px-4 py-1 bg-orbit-teal-dark hover:bg-orbit-teal hover:text-orbit-bg text-white rounded-full font-medium text-sm transition-colors'
-                        >
-                            {isFollowing ? "Following" : "Follow"}
+                {isOwnProfile ? (
+                    <Link to="/edit-profile">
+                        <button className='px-5 py-1.5 rounded-full border border-orbit-border text-orbit-text hover:bg-orbit-surface font-bold text-sm transition-colors'>
+                            Edit profile
                         </button>
-                    )}
-                </div>
+                    </Link>
+                ) : (
+                    <button
+                        onClick={followAndUnfollowHandler}
+                        className={`px-5 py-1.5 rounded-full font-bold text-sm transition-all ${isFollowing
+                            ? 'border border-orbit-border text-orbit-text hover:border-red-400 hover:text-red-400 hover:bg-red-400/10'
+                            : 'bg-orbit-text text-orbit-bg hover:bg-orbit-text/90'
+                            }`}
+                    >
+                        {isFollowing ? "Following" : "Follow"}
+                    </button>
+                )}
             </div>
 
             {/* User info */}
-            <div className='px-4 mt-2'>
-                <h1 className='font-semibold text-lg text-orbit-text'>{profileName}</h1>
-                <p className='text-orbit-faint text-sm'>@{profile?.username || "username"}</p>
+            <div className='px-4 pb-3'>
+                <h1 className='font-bold text-[18px] text-orbit-text leading-tight'>{profileName}</h1>
+                <p className='text-orbit-muted text-sm mt-0.5'>@{profile?.username || "username"}</p>
                 {profile?.bio && (
-                    <p className='mt-2 text-sm text-orbit-muted leading-relaxed'>{profile.bio}</p>
+                    <p className='mt-3 text-[14px] text-orbit-text leading-relaxed'>{profile.bio}</p>
                 )}
-                <div className='flex gap-4 mt-3 text-sm'>
-                    <span className='text-orbit-text font-semibold'>
-                        {profile?.following?.length || 0}
-                        <span className='text-orbit-faint font-normal ml-1'>Following</span>
+                <div className='flex items-center gap-1.5 mt-3 text-orbit-muted text-sm'>
+                    <CiCalendar size={16} />
+                    <span>
+                        Joined {profile?.createdAt
+                            ? new Date(profile.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+                            : '—'}
                     </span>
-                    <span className='text-orbit-text font-semibold'>
-                        {profile?.followers?.length || 0}
-                        <span className='text-orbit-faint font-normal ml-1'>Followers</span>
+                </div>
+                <div className='flex gap-5 mt-3 text-sm'>
+                    <span className='text-orbit-text font-bold'>
+                        {profile?.following?.length ?? 0}
+                        <span className='text-orbit-muted font-normal ml-1'>Following</span>
+                    </span>
+                    <span className='text-orbit-text font-bold'>
+                        {profile?.followers?.length ?? 0}
+                        <span className='text-orbit-muted font-normal ml-1'>
+                            {profile?.followers?.length === 1 ? 'Follower' : 'Followers'}
+                        </span>
                     </span>
                 </div>
             </div>
 
-            {/* User posts */}
-            <div className='mt-6 px-4'>
-                <h2 className='text-orbit-text font-bold mb-4'>Posts</h2>
-                {posts.length > 0 ? (
-                    posts.map(post => (
-                        <div key={post._id} className='border-b border-orbit-border py-4'>
-                            <p className='text-orbit-text text-base mb-2'>{post.text}</p>
-                            {post.image?.url && (
-                                <img src={post.image.url} alt="post" className='rounded-xl w-[50%] border border-orbit-border mb-2' />
-                            )}
-                            <p className='text-orbit-faint text-xs'>{new Date(post.createdAt).toLocaleString()}</p>
-                        </div>
+            {/* Tabs */}
+            <div className='flex border-b border-orbit-border mt-1'>
+                {visibleTabs.map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`flex-1 py-3 text-sm font-medium relative transition-colors hover:bg-orbit-surface/50 ${activeTab === tab ? 'text-orbit-text' : 'text-orbit-muted'
+                            }`}
+                    >
+                        {tab}
+                        {activeTab === tab && (
+                            <span className='absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[3px] bg-orbit-teal rounded-full' />
+                        )}
+                    </button>
+                ))}
+            </div>
+
+            {/* Feed */}
+            <div className='pb-16'>
+                {loading ? (
+                    <>
+                        <TweetSkeleton />
+                        <TweetSkeleton />
+                        <TweetSkeleton />
+                    </>
+                ) : posts.length > 0 ? (
+                    posts.map((tweet) => (
+                        <Tweet key={tweet._id} tweet={tweet} />
                     ))
                 ) : (
-                    <p className='text-orbit-faint text-center py-10'>No posts yet.</p>
+                    <div className='flex flex-col items-center justify-center py-16 px-8 text-center'>
+                        <p className='text-orbit-text font-bold text-xl mb-1'>
+                            {activeTab === 'Posts' && 'No posts yet'}
+                            {activeTab === 'Replies' && 'No replies yet'}
+                            {activeTab === 'Likes' && 'No liked posts yet'}
+                        </p>
+                        <p className='text-orbit-muted text-sm'>
+                            {activeTab === 'Posts' && "When you post, it'll show up here."}
+                            {activeTab === 'Replies' && "Posts you've replied to will appear here."}
+                            {activeTab === 'Likes' && 'Posts you like will show up here.'}
+                        </p>
+                    </div>
                 )}
             </div>
         </div>

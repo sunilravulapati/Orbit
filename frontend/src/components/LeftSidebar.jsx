@@ -7,7 +7,7 @@ import useUserStore from '../store/useUserStore';
 import axios from "axios";
 import { COMMON_API_END_POINT } from '../utils/constant';
 import toast from "react-hot-toast";
-import logo from '../assets/logodesign.png';
+import logo from '../assets/logodesign2.png';
 
 const LeftSidebar = () => {
     const navigate = useNavigate();
@@ -20,7 +20,7 @@ const LeftSidebar = () => {
     const isActive = (path) => {
         if (path === '/') return location.pathname === '/';
         return location.pathname.startsWith(path);
-    }
+    };
 
     const navClass = (path) =>
         `flex items-center gap-3 px-3 py-2 rounded-xl transition-colors cursor-pointer ${
@@ -42,11 +42,13 @@ const LeftSidebar = () => {
         } catch (error) {
             console.log(error);
         }
-    }
+    };
 
     return (
-        <div className='w-[20%] border-r border-orbit-border min-h-screen px-3 py-5 flex flex-col'>
-            <div>
+        // ✅ sticky + h-screen keeps the sidebar fixed in the viewport
+        // so mt-auto on the button always pushes it to the visible bottom
+        <div className='w-[20%] border-r border-orbit-border h-screen sticky top-0 px-3 py-5 flex flex-col'>
+            <div className='flex flex-col flex-1 overflow-hidden'>
                 <div className='px-3 mb-4'>
                     <img className='w-30 rounded-full' src={logo} alt="orbit-logo" />
                 </div>
@@ -71,19 +73,24 @@ const LeftSidebar = () => {
                         <CiBookmark size="20px" />
                         <span className='font-medium text-sm'>Bookmarks</span>
                     </Link>
-                    <div onClick={logoutHandler} className='flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-orbit-card text-orbit-muted hover:text-orbit-text transition-colors cursor-pointer'>
+                    <div
+                        onClick={logoutHandler}
+                        className='flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-orbit-card text-orbit-muted hover:text-orbit-text transition-colors cursor-pointer'
+                    >
                         <AiOutlineLogout size="20px" />
                         <span className='font-medium text-sm'>Logout</span>
                     </div>
                 </div>
             </div>
-            <div className='mt-auto px-2'>
+
+            {/* ✅ Always visible at the bottom of the viewport */}
+            <div className='px-2 pt-4'>
                 <button className='w-full py-2 rounded-full text-sm font-semibold text-white bg-orbit-teal-dark hover:bg-orbit-teal hover:text-orbit-bg transition-colors'>
                     + New Post
                 </button>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default LeftSidebar;

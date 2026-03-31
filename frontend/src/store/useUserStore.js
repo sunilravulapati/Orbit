@@ -19,12 +19,16 @@ const useUserStore = create(
       followingUpdate: (id) => {
         const user = get().user;
         if (!user) return;
-        const isFollowing = user.following?.some(f => f.userId === id);
+        const isFollowing = user.following?.some(
+          (f) => (f.userId?._id ?? f.userId)?.toString() === id
+        );
         set({
           user: {
             ...user,
             following: isFollowing
-              ? user.following.filter((f) => f.userId !== id)
+              ? user.following.filter(
+                (f) => (f.userId?._id ?? f.userId)?.toString() !== id
+              )
               : [...(user.following || []), { userId: id }],
           },
         });
