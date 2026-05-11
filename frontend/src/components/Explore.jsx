@@ -8,7 +8,6 @@ import TweetSkeleton from './TweetSkeleton';
 import Tweet from './Tweet';
 import useTweetStore from '../store/useTweetStore';
 
-// Re-use the same refresh signal so likes/bookmarks update across pages
 const Explore = () => {
     const navigate = useNavigate();
     const [search, setSearch] = useState("");
@@ -83,8 +82,6 @@ const Explore = () => {
                     <p className='text-orbit-muted text-sm'>Try a different search term.</p>
                 </div>
             ) : (
-                // ✅ Reuse Tweet component — gets correct author resolution,
-                //    like/comment/bookmark/delete logic, and click-to-detail nav for free
                 filteredPosts.map((post) => (
                     <Tweet key={post._id} tweet={post} />
                 ))

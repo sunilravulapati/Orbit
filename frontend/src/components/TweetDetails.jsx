@@ -350,7 +350,7 @@ const TweetDetails = () => {
 
                     {/* Action icons */}
                     <div className='flex items-center gap-1 py-1 border-b border-orbit-border -mx-1'>
-                        <ActionBtn onClick={() => {}} active={false} activeColor="text-orbit-teal"
+                        <ActionBtn onClick={() => { }} active={false} activeColor="text-orbit-teal"
                             hoverBg="hover:bg-orbit-teal/10" icon={<FaRegComment size={20} />} />
                         <ActionBtn onClick={likeHandler} active={isLiked} activeColor="text-pink-400"
                             hoverBg="hover:bg-pink-400/10"
@@ -412,7 +412,10 @@ const TweetDetails = () => {
                     {tweet.comments?.length > 0 ? tweet.comments.map((comment) => {
                         const cName = comment.userId?.firstName
                             ? `${comment.userId.firstName} ${comment.userId.lastName || ''}`.trim()
-                            : comment.userId?.username || "User";
+                            : comment.userId?.username
+                            ?? comment.userId?.name
+                            ?? (typeof comment.userId === 'string' ? null : null) // ID leaked — backend not populating
+                            ?? "User";
                         return (
                             <div key={comment._id}
                                 className='flex gap-3 px-4 py-3 border-b border-orbit-border hover:bg-orbit-surface/30 transition-colors'>

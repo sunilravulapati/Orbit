@@ -9,7 +9,7 @@ function App() {
         <div className="App">
             <Body />
             <Toaster
-                position="bottom-center"
+                position="top-center"
                 toastOptions={{
                     style: {
                         background: '#0a1628',

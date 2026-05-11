@@ -36,7 +36,6 @@ const useGetMyTweets = () => {
         } else {
             fetchFeed(); // Following tab - feed from followed users
         }
-        // eslint-disable-next-line
     }, [isActive, refresh]);
 };
 

@@ -4,7 +4,7 @@ import { PostModel } from "../models/PostModel.js";
 export const addComment = async (req, res) => {
     let { postId } = req.params;
     let { text } = req.body;
-    let userId = req.user?.userId; // 👈 get userId from token, not body
+    let userId = req.user?.userId;
 
     if (!text?.trim()) {
         return res.status(400).json({ error: "Comment cannot be empty" });
@@ -42,13 +42,13 @@ export const removeComment = async (req, res) => {
 export const getComments = async (req, res) => {
     let { postId } = req.params;
 
-    let post = await PostModel.findById(postId).populate(
-        "comments.userId",
-        "firstName lastName profileImageUrl"
-    );
+    let post = await PostModel.findById(postId)
+        .populate('author', 'firstName lastName username profileImageUrl bio')
+        .populate('comments.userId', 'firstName lastName username profileImageUrl')
+        .populate('likes.userId', '_id');
     if (!post) {
         return res.status(404).json({ message: "Post not found!" });
     }
-
+    console.log(post)
     res.status(200).json({ message: "Comments fetched", payload: post.comments });
 };

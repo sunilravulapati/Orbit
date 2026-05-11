@@ -30,8 +30,6 @@ const Body = () => {
                 { path: "/notifications",   element: <Notifications /> },
                 { path: "/bookmarks",       element: <Bookmarks /> },
                 { path: "/edit-profile",    element: <EditProfile /> },
-                // ✅ Move TweetDetails inside Home so it gets the left sidebar
-                // TweetDetails renders its own right sidebar internally
                 { path: "/tweet/:id",       element: <TweetDetails /> },
             ]
         },
