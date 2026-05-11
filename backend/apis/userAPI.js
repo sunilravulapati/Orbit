@@ -4,14 +4,15 @@ import { PostModel } from '../models/PostModel.js'
 import { verifyToken } from "../middleware/verifyToken.js";
 import upload from "../middleware/multer.js";
 import { v2 as cloudinary } from "cloudinary";
+import { sendNotification } from '../socket/index.js';
 
 
 export const userRoute = exp.Router()
 
 // get all users
 userRoute.get('/users', async (req, res) => {
-    let users = await UserModel.find()
-    if (!users) {
+    let users = await UserModel.find().select('firstName lastName username profileImageUrl bio');
+    if (!users || users.length === 0) {
         return res.status(404).json({ message: "no users found!" })
     }
     res.status(200).json({ message: "users: ", payload: users })
@@ -43,6 +44,13 @@ userRoute.post("/follow/:userId", verifyToken("USER"), async (req, res) => {
     followingUser.followers.push({ userId: followerId });
     await followerUser.save();
     await followingUser.save();
+
+    sendNotification(targetUserId, {
+        type: 'follow',
+        fromUserId: userId,
+        fromUsername: req.user.username,
+        message: `${req.user.username} started following you`
+    });
 
     res.status(200).json({ message: "followed successfully" });
 });
@@ -86,37 +94,37 @@ userRoute.get("/following/:userId", verifyToken("USER"), async (req, res) => {
 });
 
 
-userRoute.patch('/update-avatar',verifyToken('USER'),upload.single("image"),async (req, res) => {
+userRoute.patch('/update-avatar', verifyToken('USER'), upload.single("image"), async (req, res) => {
     try {
-      const userId = req.user.userId;
+        const userId = req.user.userId;
 
-      if (!req.file) {
-        return res.status(400).json({ error: "No image file provided" });
-      }
+        if (!req.file) {
+            return res.status(400).json({ error: "No image file provided" });
+        }
 
-      // Upload to Cloudinary
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "avatars",
-        resource_type: "image"
-      });
+        // Upload to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: "avatars",
+            resource_type: "image"
+        });
 
-      const profileImageUrl = result.secure_url;
+        const profileImageUrl = result.secure_url;
 
-      const updatedUser = await UserModel.findByIdAndUpdate(
-        userId,
-        { $set: { profileImageUrl } },
-        { new: true }
-      ).select("-password");
+        const updatedUser = await UserModel.findByIdAndUpdate(
+            userId,
+            { $set: { profileImageUrl } },
+            { new: true }
+        ).select("-password");
 
-      res.status(200).json({
-        message: "Avatar updated successfully",
-        payload: updatedUser
-      });
+        res.status(200).json({
+            message: "Avatar updated successfully",
+            payload: updatedUser
+        });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Server error during upload" });
+        console.error(err);
+        res.status(500).json({ error: "Server error during upload" });
     }
-  }
+}
 );
 
 // update user profile

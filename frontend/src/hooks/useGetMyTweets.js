@@ -7,17 +7,19 @@ const useGetMyTweets = () => {
     const refresh = useTweetStore((state) => state.refresh);
     const isActive = useTweetStore((state) => state.isActive);
     const setAllTweets = useTweetStore((state) => state.setAllTweets);
+    const tab = useTweetStore((state) => state.activeTab);
 
     const fetchFeed = async () => {
         try {
-            const res = await axios.get(`${POST_API_END_POINT}/feed`, {
-                withCredentials: true
-            });
+            const res = await axios.get(
+                `${POST_API_END_POINT}/feed?tab=${tab || 'foryou'}`,
+                { withCredentials: true }
+            );
             setAllTweets(res.data.payload);
         } catch (error) {
             console.log(error);
         }
-    }
+    };
 
     const fetchAllPosts = async () => {
         try {
@@ -28,15 +30,15 @@ const useGetMyTweets = () => {
         } catch (error) {
             console.log(error);
         }
-    }
+    };
 
     useEffect(() => {
         if (isActive) {
-            fetchAllPosts(); // For you tab - all posts
+            fetchAllPosts();
         } else {
-            fetchFeed(); // Following tab - feed from followed users
+            fetchFeed();
         }
-    }, [isActive, refresh]);
+    }, [isActive, refresh, tab]);
 };
 
 export default useGetMyTweets;

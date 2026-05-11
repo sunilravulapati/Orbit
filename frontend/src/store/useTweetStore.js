@@ -24,8 +24,17 @@ const useTweetStore = create(
         }
       },
 
+      addNewPost: (post) =>
+        set((state) => ({
+          tweets: [post, ...(state.tweets || [])]  // prepend to feed
+        })),
+
       toggleRefresh: () => set({ refresh: !get().refresh }),
       setIsActive: (isActive) => set({ isActive }),
+      composerFocus: false,
+      setComposerFocus: (value) => set({ composerFocus: value }),
+      openComposer: () => set({ composerFocus: true }),
+      clearComposerFocus: () => set({ composerFocus: false }),
     }),
     { name: 'tweet-storage' }
   )

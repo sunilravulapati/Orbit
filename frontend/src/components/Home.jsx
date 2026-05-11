@@ -5,8 +5,10 @@ import { Outlet, useNavigate } from "react-router-dom";
 import useOtherUsers from '../hooks/useOtherUsers';
 import useUserStore from '../store/useUserStore';
 import useGetMyTweets from '../hooks/useGetMyTweets';
+import useSocket from '../hooks/useSocket';
 
 const Home = () => {
+    useSocket();
     const user = useUserStore((state) => state.user);
     const otherUsers = useUserStore((state) => state.otherUsers);
     const navigate = useNavigate();

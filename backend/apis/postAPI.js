@@ -25,7 +25,7 @@ postRoute.get("/user/:userId", verifyToken("USER"), getPosts);
 postRoute.get("/post/:postId", async (req, res) => {
     const post = await PostModel.findById(req.params.postId)
         .populate("author", "username firstName profileImageUrl")
-        .populate("comments.userId", "username profileImageUrl"); // Optional: populate comment authors
+        .populate("comments.userId", "username firstName lastName profileImageUrl"); // Optional: populate comment authors
     res.json({ payload: post });
 });
 
@@ -33,6 +33,7 @@ postRoute.get("/post/:postId", async (req, res) => {
 postRoute.get("/all", async (req, res) => {
     const posts = await PostModel.find({ isActive: true })
         .populate("author", "username firstName profileImageUrl") // 👈 added firstName
+        .populate("comments.userId", "username firstName lastName profileImageUrl")
         .sort({ createdAt: -1 });
 
     res.json({ message: "all posts", payload: posts });

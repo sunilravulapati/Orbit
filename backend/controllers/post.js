@@ -1,5 +1,6 @@
 import cloudinary from "../config/cloudinary.js";
 import { PostModel } from "../models/PostModel.js";
+import { broadcastNewPost } from '../socket/index.js';
 
 //creation of a post with image
 export const createPost = async (req, res, next) => {
@@ -32,6 +33,8 @@ export const createPost = async (req, res, next) => {
     });
 
     await newPost.save();
+
+    broadcastNewPost(savedPost);
 
     res.status(201).json({
       message: "Post created successfully",

@@ -4,7 +4,7 @@ import { FaRegComment } from "react-icons/fa";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { CiHeart, CiBookmark } from "react-icons/ci";
 import { AiFillHeart } from "react-icons/ai";
-import { BsStars } from "react-icons/bs";
+import { BsStars, BsBookmarkFill } from "react-icons/bs";
 import axios from "axios";
 import { POST_API_END_POINT, timeSince } from '../utils/constant';
 import toast from "react-hot-toast";
@@ -29,7 +29,6 @@ const resolveAvatar = (author) => {
     return author.profileImageUrl || author.avatar || author.avatarUrl || null;
 };
 
-// ── AI Reply Suggestions ──────────────────────────────────────────────────────
 const fetchAISuggestions = async (postText) => {
     if (!GROQ_API_KEY || !postText?.trim()) return [];
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -57,7 +56,6 @@ Rules:
     });
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content?.trim();
-    // Strip markdown fences if present
     const clean = raw?.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
 };
@@ -87,7 +85,6 @@ const Tweet = ({ tweet }) => {
                 const results = await fetchAISuggestions(tweet.text);
                 setSuggestions(Array.isArray(results) ? results : []);
             } catch {
-                // Silently fail — suggestions are non-critical
                 setSuggestions([]);
             } finally {
                 setLoadingSuggestions(false);
@@ -177,7 +174,7 @@ const Tweet = ({ tweet }) => {
 
     return (
         <article
-            className='border-b border-orbit-border hover:bg-orbit-surface/40 transition-colors cursor-pointer'
+            className='border-b border-orbit-border hover:bg-orbit-surface/30 transition-colors cursor-pointer group'
             onClick={() => tweet?._id && navigate(`/tweet/${tweet._id}`)}
         >
             <div className='flex gap-3 px-4 pt-4 pb-3'>
@@ -186,83 +183,106 @@ const Tweet = ({ tweet }) => {
                 <Link
                     to={authorId ? `/profile/${authorId}` : "#"}
                     onClick={(e) => e.stopPropagation()}
-                    className='w-10 h-10 rounded-full bg-orbit-surface border border-orbit-border flex items-center justify-center text-orbit-teal font-semibold text-sm shrink-0 overflow-hidden hover:opacity-90 transition-opacity'
+                    className='w-10 h-10 rounded-full bg-orbit-surface border border-orbit-border flex items-center justify-center text-orbit-teal font-semibold text-sm shrink-0 overflow-hidden hover:ring-2 hover:ring-orbit-teal/30 transition-all'
                 >
                     {authorAvatar ? (
-                        <img src={authorAvatar} alt="avatar" className='w-full h-full object-cover'
-                            onError={(e) => { e.target.style.display = 'none'; }} />
+                        <img
+                            src={authorAvatar}
+                            alt="avatar"
+                            className='w-full h-full object-cover'
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                        />
                     ) : (
                         <span>{avatarLetter}</span>
                     )}
                 </Link>
 
                 <div className='flex-1 min-w-0'>
-                    {/* Author row */}
+
+                    {/* Author + meta row */}
                     <div className='flex items-baseline gap-1.5 flex-wrap'>
                         <Link
                             to={authorId ? `/profile/${authorId}` : "#"}
                             onClick={(e) => e.stopPropagation()}
-                            className='font-bold text-[14px] text-orbit-text hover:underline leading-tight'
+                            className='font-bold text-[14px] text-orbit-text hover:text-orbit-teal transition-colors leading-tight'
                         >
                             {authorName}
                         </Link>
                         {authorUsername && (
                             <span className='text-orbit-muted text-[13px] truncate'>
-                                @{authorUsername} · {timeSince(tweet?.createdAt)}
+                                @{authorUsername}
                             </span>
+                        )}
+                        {tweet?.createdAt && (
+                            <span className='text-orbit-muted text-[13px]'>· {timeSince(tweet.createdAt)}</span>
                         )}
                     </div>
 
-                    {/* Text */}
-                    <p className='text-[14px] text-orbit-text mt-1 leading-relaxed whitespace-pre-wrap break-words'>
+                    {/* Post text */}
+                    <p className='text-[14px] text-orbit-text mt-1.5 leading-relaxed whitespace-pre-wrap break-words'>
                         {tweet?.text}
                     </p>
 
                     {/* Image */}
                     {tweet?.image?.url && (
                         <div className='mt-3 rounded-2xl overflow-hidden border border-orbit-border'>
-                            <img src={tweet.image.url} alt="post"
-                                className='max-h-72 w-full object-cover'
+                            <img
+                                src={tweet.image.url}
+                                alt="post"
+                                className='max-h-72 w-full object-cover hover:brightness-95 transition-all'
                                 onClick={(e) => e.stopPropagation()}
                                 onError={(e) => { e.target.parentElement.style.display = 'none'; }}
                             />
                         </div>
                     )}
 
-                    {/* Actions */}
-                    <div className='flex items-center gap-1 mt-3 -ml-1.5'>
+                    {/* Action bar */}
+                    <div className='flex items-center mt-3 -ml-2 gap-0'>
+
+                        {/* Comment */}
                         <ActionBtn
                             onClick={openCommentBox}
                             active={activeCommentId === tweet._id}
                             activeColor="text-orbit-teal"
                             hoverBg="hover:bg-orbit-teal/10"
+                            hoverColor="hover:text-orbit-teal"
                             icon={<FaRegComment size={15} />}
                             count={tweet?.comments?.length || 0}
                         />
+
+                        {/* Like */}
                         <ActionBtn
                             onClick={(e) => likeOrDislikeHandler(e, tweet?._id)}
                             active={isLiked}
                             activeColor="text-pink-400"
                             hoverBg="hover:bg-pink-400/10"
+                            hoverColor="hover:text-pink-400"
                             icon={isLiked
                                 ? <AiFillHeart size={17} className="text-pink-400" />
                                 : <CiHeart size={17} />}
                             count={tweet?.likes?.length || 0}
                         />
+
+                        {/* Bookmark */}
                         <ActionBtn
                             onClick={(e) => { e.stopPropagation(); toggleBookmark(tweet); }}
                             active={isBookmarked}
                             activeColor="text-orbit-teal"
                             hoverBg="hover:bg-orbit-teal/10"
-                            icon={<CiBookmark size={17} />}
+                            hoverColor="hover:text-orbit-teal"
+                            icon={isBookmarked
+                                ? <BsBookmarkFill size={15} className="text-orbit-teal" />
+                                : <CiBookmark size={17} />}
                         />
+
+                        {/* Delete (own posts only) */}
                         {user?.userId === authorId?.toString() && (
                             <ActionBtn
                                 onClick={(e) => deleteTweetHandler(e, tweet?._id)}
                                 active={false}
-                                activeColor="text-red-400"
+                                activeColor=""
                                 hoverBg="hover:bg-red-400/10"
-                                hoverText="hover:text-red-400"
+                                hoverColor="hover:text-red-400"
                                 icon={<MdOutlineDeleteOutline size={17} />}
                             />
                         )}
@@ -271,24 +291,24 @@ const Tweet = ({ tweet }) => {
                     {/* Comment box + AI suggestions */}
                     {activeCommentId === tweet._id && (
                         <div
-                            className='mt-3 border-t border-orbit-border pt-3'
+                            className='mt-3 border-t border-orbit-border pt-4'
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {/* ── AI Suggestions ── */}
+                            {/* AI Suggestions */}
                             {loadingSuggestions ? (
                                 <div className='flex items-center gap-2 mb-3 px-1'>
                                     <BsStars size={13} className='text-orbit-teal animate-pulse' />
                                     <span className='text-[12px] text-orbit-muted'>Getting AI suggestions…</span>
                                 </div>
                             ) : suggestions.length > 0 && (
-                                <div className='mb-3'>
-                                    <div className='flex items-center gap-1.5 mb-2 px-1'>
+                                <div className='mb-3 p-3 bg-orbit-surface/60 rounded-xl border border-orbit-border/60'>
+                                    <div className='flex items-center gap-1.5 mb-2'>
                                         <BsStars size={12} className='text-orbit-teal' />
-                                        <span className='text-[11px] text-orbit-muted font-medium tracking-wide uppercase'>
+                                        <span className='text-[10px] text-orbit-teal font-semibold tracking-widest uppercase'>
                                             AI Suggestions
                                         </span>
                                     </div>
-                                    <div className='flex flex-wrap gap-2'>
+                                    <div className='flex flex-wrap gap-1.5'>
                                         {suggestions.map((s, i) => (
                                             <button
                                                 key={i}
@@ -309,14 +329,14 @@ const Tweet = ({ tweet }) => {
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && commentHandler(tweet._id)}
-                                    placeholder="Post your reply"
-                                    className="flex-1 bg-orbit-bg border border-orbit-border rounded-full px-4 py-2 text-[13px] text-orbit-text placeholder:text-orbit-muted outline-none focus:border-orbit-teal transition-colors"
+                                    placeholder="Post your reply…"
+                                    className="flex-1 bg-orbit-surface border border-orbit-border rounded-full px-4 py-2 text-[13px] text-orbit-text placeholder:text-orbit-muted outline-none focus:border-orbit-teal transition-colors"
                                     autoFocus
                                 />
                                 <button
                                     onClick={() => commentHandler(tweet._id)}
                                     disabled={!commentText.trim()}
-                                    className="bg-orbit-teal text-orbit-bg px-4 py-1.5 rounded-full text-[13px] font-bold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="bg-orbit-teal text-orbit-bg px-4 py-2 rounded-full text-[13px] font-bold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                                 >
                                     Reply
                                 </button>
@@ -324,35 +344,43 @@ const Tweet = ({ tweet }) => {
 
                             {/* Existing comments */}
                             {tweet?.comments?.length > 0 && (
-                                <div className='mt-4 flex flex-col gap-3'>
+                                <div className='mt-4 flex flex-col gap-2.5'>
                                     {tweet.comments.map((comment, idx) => {
                                         const cName = resolveAuthorName(comment.userId) || "User";
                                         const cAvatar = resolveAvatar(comment.userId);
                                         const cLetter = cName[0]?.toUpperCase();
                                         return (
-                                            <div key={comment._id || idx} className='flex gap-3'>
+                                            <div key={comment._id || idx} className='flex gap-2.5'>
                                                 <Link
                                                     to={`/profile/${comment.userId?._id || comment.userId}`}
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className='w-8 h-8 rounded-full bg-orbit-surface border border-orbit-border flex items-center justify-center text-orbit-teal font-medium text-xs shrink-0 overflow-hidden'
+                                                    className='w-7 h-7 rounded-full bg-orbit-surface border border-orbit-border flex items-center justify-center text-orbit-teal font-medium text-xs shrink-0 overflow-hidden hover:ring-2 hover:ring-orbit-teal/30 transition-all'
                                                 >
                                                     {cAvatar ? (
-                                                        <img src={cAvatar} alt="avatar" className='w-full h-full object-cover'
-                                                            onError={(e) => { e.target.style.display = 'none'; }} />
+                                                        <img
+                                                            src={cAvatar}
+                                                            alt="avatar"
+                                                            className='w-full h-full object-cover'
+                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                        />
                                                     ) : cLetter}
                                                 </Link>
-                                                <div className='flex-1 bg-orbit-surface rounded-2xl px-3 py-2'>
-                                                    <div className='flex items-baseline gap-1.5'>
+                                                <div className='flex-1 bg-orbit-surface/70 rounded-2xl px-3 py-2 border border-orbit-border/50'>
+                                                    <div className='flex items-baseline gap-1.5 flex-wrap'>
                                                         <Link
                                                             to={`/profile/${comment.userId?._id || comment.userId}`}
                                                             onClick={(e) => e.stopPropagation()}
-                                                            className='font-semibold text-[13px] text-orbit-text hover:underline'
+                                                            className='font-semibold text-[12px] text-orbit-text hover:text-orbit-teal transition-colors'
                                                         >
                                                             {cName}
                                                         </Link>
-                                                        <span className='text-[11px] text-orbit-muted'>{timeSince(comment.createdAt)}</span>
+                                                        <span className='text-[10px] text-orbit-muted'>
+                                                            {timeSince(comment.createdAt)}
+                                                        </span>
                                                     </div>
-                                                    <p className='text-orbit-text text-[13px] mt-0.5 leading-snug'>{comment.text}</p>
+                                                    <p className='text-orbit-text text-[12px] mt-0.5 leading-snug'>
+                                                        {comment.text}
+                                                    </p>
                                                 </div>
                                             </div>
                                         );
@@ -367,14 +395,16 @@ const Tweet = ({ tweet }) => {
     );
 };
 
-const ActionBtn = ({ onClick, active, activeColor, hoverBg, hoverText = "", icon, count }) => (
+const ActionBtn = ({ onClick, active, activeColor, hoverBg, hoverColor = "", icon, count }) => (
     <button
         onClick={onClick}
-        className={`flex items-center gap-1 px-2 py-1.5 rounded-full transition-colors text-orbit-muted ${hoverBg} ${hoverText} ${active ? activeColor : ''}`}
+        className={`flex items-center gap-1.5 px-2.5 py-2 rounded-full transition-all text-orbit-muted ${hoverBg} ${hoverColor} ${active ? activeColor : ''}`}
     >
         {icon}
         {count !== undefined && count > 0 && (
-            <span className={`text-[12px] ${active ? activeColor : ''}`}>{count}</span>
+            <span className={`text-[12px] font-medium ${active ? activeColor : 'text-orbit-muted'}`}>
+                {count}
+            </span>
         )}
     </button>
 );

@@ -7,10 +7,12 @@ const useUserStore = create(
       user: null,
       otherUsers: null,
       profile: null,
+      onlineUsers: [],
 
       setUser: (user) => set({ user }),
       setOtherUsers: (otherUsers) => set({ otherUsers }),
       setProfile: (profile) => set({ profile }),
+      setOnlineUsers: (onlineUsers) => set({ onlineUsers }),
 
       updateUser: (updates) => set({
         user: { ...get().user, ...updates }

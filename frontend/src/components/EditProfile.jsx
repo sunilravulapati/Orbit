@@ -118,50 +118,76 @@ const EditProfile = () => {
         <div className='w-[50%] border-l border-r border-orbit-border min-h-screen bg-orbit-bg'>
 
             {/* ── Header ── */}
-            <div className='flex items-center gap-6 py-3 px-4 border-b border-orbit-border bg-orbit-bg/90 backdrop-blur sticky top-0 z-10'>
+            <div className='flex items-center gap-5 py-3 px-4 border-b border-orbit-border bg-orbit-bg/80 backdrop-blur-md sticky top-0 z-10'>
                 <Link
                     to={`/profile/${user?.userId}`}
-                    className='p-2 rounded-full hover:bg-orbit-surface transition-colors'
+                    className='p-2 rounded-full hover:bg-orbit-surface/70 transition-all duration-200 group'
                 >
-                    <IoMdArrowBack size={20} className='text-orbit-text' />
+                    <IoMdArrowBack size={19} className='text-orbit-muted group-hover:text-orbit-text transition-colors' />
                 </Link>
                 <div className='flex-1'>
-                    <h1 className='font-bold text-[17px] text-orbit-text'>Edit profile</h1>
+                    <h1 className='font-bold text-[17px] text-orbit-text tracking-tight'>Edit profile</h1>
+                    <p className='text-[12px] text-orbit-muted leading-none mt-0.5'>
+                        {displayName}
+                    </p>
                 </div>
-                {/* Save button in header (Twitter-style) */}
                 <button
                     type="button"
                     onClick={submitHandler}
                     disabled={isBusy}
-                    className='px-4 py-1.5 bg-orbit-text text-orbit-bg rounded-full text-sm font-bold hover:bg-orbit-text/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                    className='relative px-5 py-2 bg-orbit-text text-orbit-bg rounded-full text-[13px] font-bold tracking-tight hover:bg-orbit-text/85 active:scale-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden'
                 >
-                    {isBusy ? "Saving…" : "Save"}
+                    <span className={`transition-opacity duration-150 ${isBusy ? 'opacity-0' : 'opacity-100'}`}>
+                        Save
+                    </span>
+                    {isBusy && (
+                        <span className='absolute inset-0 flex items-center justify-center gap-1'>
+                            <span className='w-1.5 h-1.5 rounded-full bg-orbit-bg animate-bounce [animation-delay:0ms]' />
+                            <span className='w-1.5 h-1.5 rounded-full bg-orbit-bg animate-bounce [animation-delay:150ms]' />
+                            <span className='w-1.5 h-1.5 rounded-full bg-orbit-bg animate-bounce [animation-delay:300ms]' />
+                        </span>
+                    )}
                 </button>
             </div>
 
-            <div className='pb-10'>
-                {/* ── Banner placeholder ── */}
-                <div
-                    className='h-32 w-full relative'
-                    style={{ background: 'linear-gradient(135deg, #0e7a5c 0%, #1a3a5c 100%)' }}
-                />
+            <div className='pb-12'>
+                {/* ── Banner ── */}
+                <div className='h-36 w-full relative overflow-hidden'>
+                    <div
+                        className='absolute inset-0'
+                        style={{
+                            background: 'linear-gradient(135deg, #0e7a5c 0%, #0f5a4a 40%, #1a3a5c 100%)',
+                        }}
+                    />
+                    {/* subtle grid overlay */}
+                    <div
+                        className='absolute inset-0 opacity-10'
+                        style={{
+                            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(255,255,255,0.15) 24px, rgba(255,255,255,0.15) 25px), repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(255,255,255,0.15) 24px, rgba(255,255,255,0.15) 25px)',
+                        }}
+                    />
+                </div>
 
-                {/* ── Avatar ── */}
-                <div className='px-4 -mt-10 mb-6'>
-                    <div className='relative inline-block'>
-                        <div className='w-24 h-24 rounded-full bg-orbit-surface border-4 border-orbit-bg overflow-hidden flex items-center justify-center text-orbit-teal font-bold text-3xl shadow-lg'>
+                {/* ── Avatar section ── */}
+                <div className='px-5 -mt-12 mb-5 flex items-end justify-between'>
+                    <div className='relative group'>
+                        <div className='w-24 h-24 rounded-full bg-orbit-surface border-[3px] border-orbit-bg overflow-hidden flex items-center justify-center text-orbit-teal font-bold text-3xl shadow-md'>
                             {avatarPreview ? (
                                 <img src={avatarPreview} alt="avatar" className='w-full h-full object-cover' />
                             ) : (
-                                displayName[0]?.toUpperCase() || "U"
+                                <span className='text-2xl font-bold'>
+                                    {displayName[0]?.toUpperCase() || "U"}
+                                </span>
                             )}
                         </div>
+                        {/* hover overlay */}
                         <button
                             type="button"
                             onClick={() => fileInputRef.current.click()}
-                            className='absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity'
+                            className='absolute inset-0 rounded-full bg-black/50 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 backdrop-blur-[2px]'
                         >
-                            <CiCamera size={22} className='text-white' />
+                            <CiCamera size={20} className='text-white' />
+                            <span className='text-white text-[10px] font-semibold tracking-wide'>CHANGE</span>
                         </button>
                         <input
                             type="file"
@@ -172,71 +198,91 @@ const EditProfile = () => {
                         />
                     </div>
                     {avatarFile && (
-                        <p className='text-orbit-teal text-xs mt-2 ml-1'>New photo ready — saves with your profile</p>
+                        <div className='flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orbit-teal/10 border border-orbit-teal/20 mb-1'>
+                            <span className='w-1.5 h-1.5 rounded-full bg-orbit-teal animate-pulse' />
+                            <span className='text-orbit-teal text-[11px] font-medium'>New photo ready</span>
+                        </div>
                     )}
                 </div>
 
-                {/* ── Form fields ── */}
-                <div className='px-4 flex flex-col gap-4'>
-                    <FloatingInput
-                        label="First name"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        maxLength={50}
-                    />
-                    <FloatingInput
-                        label="Last name"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        maxLength={50}
-                    />
-                    <FloatingInput
-                        label="Username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        maxLength={30}
-                        prefix="@"
-                    />
-                    <FloatingTextarea
-                        label="Bio"
-                        value={bio}
-                        onChange={(e) => setBio(e.target.value)}
-                        maxLength={160}
-                        rows={3}
-                    />
+                {/* ── Divider label ── */}
+                <div className='px-5 mb-4'>
+                    <p className='text-[11px] font-semibold text-orbit-muted uppercase tracking-widest mb-4'>
+                        Profile info
+                    </p>
+                    <div className='flex flex-col gap-3'>
+                        <div className='grid grid-cols-2 gap-3'>
+                            <FloatingInput
+                                label="First name"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                maxLength={50}
+                            />
+                            <FloatingInput
+                                label="Last name"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                maxLength={50}
+                            />
+                        </div>
+                        <FloatingInput
+                            label="Username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            maxLength={30}
+                            prefix="@"
+                        />
+                        <FloatingTextarea
+                            label="Bio"
+                            value={bio}
+                            onChange={(e) => setBio(e.target.value)}
+                            maxLength={160}
+                            rows={3}
+                        />
+                    </div>
                 </div>
+
+                {/* ── Character limit ring visual ── */}
+                {bio.length > 130 && (
+                    <div className='px-5 mt-1'>
+                        <div className={`text-[12px] font-medium transition-colors ${bio.length >= 160 ? 'text-red-400' : 'text-orbit-teal'}`}>
+                            {160 - bio.length} characters remaining
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
-/* Floating-label input — Twitter edit profile style */
+/* ── Floating-label input ── */
 const FloatingInput = ({ label, value, onChange, maxLength, prefix }) => (
-    <div className='relative border border-orbit-border rounded-md px-3 pt-5 pb-2 bg-orbit-surface/30 focus-within:border-orbit-teal transition-colors group'>
-        <label className='absolute top-1.5 left-3 text-[11px] text-orbit-muted group-focus-within:text-orbit-teal transition-colors'>
+    <div className='relative border border-orbit-border rounded-xl px-3 pt-6 pb-2.5 bg-orbit-surface/20 focus-within:border-orbit-teal focus-within:bg-orbit-surface/40 hover:border-orbit-border/80 transition-all duration-200 group'>
+        <label className='absolute top-2 left-3 text-[10.5px] font-semibold text-orbit-muted group-focus-within:text-orbit-teal transition-colors tracking-wide uppercase'>
             {label}
         </label>
         <div className='flex items-center gap-0.5'>
-            {prefix && <span className='text-orbit-muted text-sm'>{prefix}</span>}
+            {prefix && <span className='text-orbit-muted text-[14px] mr-0.5 select-none'>{prefix}</span>}
             <input
                 type="text"
                 value={value}
                 onChange={onChange}
                 maxLength={maxLength}
-                className='flex-1 bg-transparent text-orbit-text text-[15px] outline-none placeholder:text-orbit-muted'
+                className='flex-1 bg-transparent text-orbit-text text-[14px] outline-none placeholder:text-orbit-muted/50 min-w-0'
             />
         </div>
-        {maxLength && (
-            <span className='absolute top-2 right-3 text-[11px] text-orbit-muted'>
+        {maxLength && value.length > maxLength * 0.7 && (
+            <span className={`absolute top-2 right-3 text-[10px] font-medium transition-colors ${value.length >= maxLength ? 'text-red-400' : 'text-orbit-muted'}`}>
                 {value.length}/{maxLength}
             </span>
         )}
     </div>
 );
 
+/* ── Floating-label textarea ── */
 const FloatingTextarea = ({ label, value, onChange, maxLength, rows }) => (
-    <div className='relative border border-orbit-border rounded-md px-3 pt-5 pb-2 bg-orbit-surface/30 focus-within:border-orbit-teal transition-colors group'>
-        <label className='absolute top-1.5 left-3 text-[11px] text-orbit-muted group-focus-within:text-orbit-teal transition-colors'>
+    <div className='relative border border-orbit-border rounded-xl px-3 pt-6 pb-2.5 bg-orbit-surface/20 focus-within:border-orbit-teal focus-within:bg-orbit-surface/40 hover:border-orbit-border/80 transition-all duration-200 group'>
+        <label className='absolute top-2 left-3 text-[10.5px] font-semibold text-orbit-muted group-focus-within:text-orbit-teal transition-colors tracking-wide uppercase'>
             {label}
         </label>
         <textarea
@@ -244,12 +290,14 @@ const FloatingTextarea = ({ label, value, onChange, maxLength, rows }) => (
             onChange={onChange}
             maxLength={maxLength}
             rows={rows}
-            className='w-full bg-transparent text-orbit-text text-[15px] outline-none resize-none placeholder:text-orbit-muted'
+            className='w-full bg-transparent text-orbit-text text-[14px] outline-none resize-none placeholder:text-orbit-muted/50 leading-relaxed'
         />
         {maxLength && (
-            <span className='absolute top-2 right-3 text-[11px] text-orbit-muted'>
-                {value.length}/{maxLength}
-            </span>
+            <div className='flex justify-end mt-1'>
+                <span className={`text-[10px] font-medium transition-colors ${value.length >= maxLength ? 'text-red-400' : value.length > maxLength * 0.8 ? 'text-amber-400' : 'text-orbit-muted'}`}>
+                    {value.length}/{maxLength}
+                </span>
+            </div>
         )}
     </div>
 );

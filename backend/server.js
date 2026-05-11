@@ -7,6 +7,8 @@ import { adminRoute } from './apis/adminAPI.js'
 import { commonRouter } from './apis/commonAPI.js'
 import {postRoute} from  './apis/postAPI.js'
 import cors from 'cors';
+import http from 'http';
+import { initSocket } from './socket/index.js';
 config()
 
 const app = exp()
@@ -16,6 +18,10 @@ app.use(cors({
     origin: ['http://localhost:5173'],
     credentials: true // for cookies and tokens
 }))
+
+// Create HTTP server for Socket.IO
+const httpServer = http.createServer(app);
+initSocket(httpServer);
 //body parser middleware
 app.use(exp.json())
 //cookie-parser
@@ -30,7 +36,7 @@ const connectDB = async () => {
     try {
         await connect(process.env.DB_URL)
         console.log("db connection successful!")
-        app.listen(process.env.PORT, () => console.log("http server started and listening to port"))
+        httpServer.listen(process.env.PORT, () => console.log(`http server started and listening to port ${process.env.PORT}`))
     } catch (err) {
         console.log("an error occured")
         console.log(err.message)

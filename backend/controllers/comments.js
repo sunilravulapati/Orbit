@@ -1,4 +1,5 @@
 import { PostModel } from "../models/PostModel.js";
+import { sendNotification } from '../socket/index.js';
 
 // add comments
 export const addComment = async (req, res) => {
@@ -18,6 +19,15 @@ export const addComment = async (req, res) => {
     post.comments.push({ userId, text });
     await post.save();
 
+    if (post.author.toString() !== userId) {
+        sendNotification(post.author.toString(), {
+            type: 'comment',
+            fromUserId: userId,
+            fromUsername: req.user.username,
+            postId: post._id,
+            message: `${req.user.username} commented on your post`
+        });
+    }
     res.status(200).json({ message: "Comment added" });
 };
 

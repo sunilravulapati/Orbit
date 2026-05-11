@@ -1,4 +1,5 @@
 import { PostModel } from "../models/PostModel.js";
+import { sendNotification } from '../socket/index.js';
 
 // post-api/:id/like
 export const likePost = async (req, res) => {
@@ -22,6 +23,15 @@ export const likePost = async (req, res) => {
     post.likes.push({ userId })
     //save it to db
     await post.save();
+    if (post.author.toString() !== userId) {  // don't notify yourself
+    sendNotification(post.author.toString(), {
+        type: 'like',
+        fromUserId: userId,
+        fromUsername: req.user.username,  // attach this in verifyToken if not already
+        postId: post._id,
+        message: `${req.user.username} liked your post`
+    });
+}
     //res
     res.status(200).json({ message: "post liked!", payload: post.likes.length })
 }
