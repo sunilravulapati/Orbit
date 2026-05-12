@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { IoMdArrowBack } from "react-icons/io";
 import { CiHeart, CiBookmark } from "react-icons/ci";
-import { AiFillHeart, AiFillBookmark } from "react-icons/ai";
+import { AiFillHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-import { BsStars } from "react-icons/bs";
+import { BsStars, BsBookmarkFill } from "react-icons/bs";
 import { CiSearch } from "react-icons/ci";
 import axios from 'axios';
 import { POST_API_END_POINT, USER_API_END_POINT, timeSince } from '../utils/constant';
@@ -412,7 +412,7 @@ const TweetDetails = () => {
                             hoverBg="hover:bg-orbit-teal/8"
                             hoverColor="hover:text-orbit-teal"
                             icon={isBookmarked
-                                ? <AiFillBookmark size={19} className="text-orbit-teal" />
+                                ? <BsBookmarkFill size={19} className="text-orbit-teal" />
                                 : <CiBookmark size={20} />}
                         />
                     </div>

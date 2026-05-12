@@ -13,14 +13,12 @@ const useGetProfile = (id) => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await axios.get(`${USER_API_END_POINT}/users`, {
+                const res = await axios.get(`${USER_API_END_POINT}/user/${id}`, {
                     withCredentials: true
                 });
-                // Normalize payload shape
-                const users = res.data?.payload ?? res.data?.data ?? res.data ?? [];
-                const foundUser = (Array.isArray(users) ? users : []).find(u => u._id === id);
-                if (foundUser) {
-                    setProfile(foundUser);
+                const user = res.data?.payload;
+                if (user) {
+                    setProfile(user);
                 } else {
                     console.warn(`useGetProfile: no user found with id ${id}`);
                 }

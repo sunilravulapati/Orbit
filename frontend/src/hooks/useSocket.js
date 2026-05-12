@@ -16,25 +16,28 @@ const useSocket = () => {
         const socket = connectSocket(user.userId);
 
         // Online presence
-        socket.on('users:online', (userIds) => {
+        const handleOnlineUsers = (userIds) => {
             setOnlineUsers(userIds);
-        });
+        };
 
         // Incoming notifications
-        socket.on('notification:new', (notification) => {
+        const handleNotification = (notification) => {
             addNotification(notification);
-        });
+        };
 
         // New post appears in feed live
-        socket.on('post:new', (post) => {
+        const handleNewPost = (post) => {
             addNewPost(post);
-        });
+        };
+
+        socket.on('users:online', handleOnlineUsers);
+        socket.on('notification:new', handleNotification);
+        socket.on('post:new', handleNewPost);
 
         return () => {
-            // Don't fully disconnect on unmount, just remove listeners
-            socket.off('users:online');
-            socket.off('notification:new');
-            socket.off('post:new');
+            socket.off('users:online', handleOnlineUsers);
+            socket.off('notification:new', handleNotification);
+            socket.off('post:new', handleNewPost);
         };
     }, [user?.userId, setOnlineUsers, addNotification, addNewPost]);
 };

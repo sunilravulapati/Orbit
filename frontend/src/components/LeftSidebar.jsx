@@ -10,6 +10,7 @@ import { COMMON_API_END_POINT } from '../utils/constant';
 import toast from "react-hot-toast";
 import logo from '../assets/logodesign2.png';
 import useNotificationStore from '../store/useNotificationStore';
+import { disconnectSocket } from '../utils/socket';
 
 const LeftSidebar = () => {
     const navigate = useNavigate();
@@ -20,6 +21,7 @@ const LeftSidebar = () => {
     const setOtherUsers = useUserStore((state) => state.setOtherUsers);
     const setProfile = useUserStore((state) => state.setProfile);
     const openComposer = useTweetStore((state) => state.openComposer);
+    const clearNotifications = useNotificationStore((s) => s.clearNotifications);
 
     const isActive = (path) => {
         if (path === '/') return location.pathname === '/';
@@ -28,14 +30,18 @@ const LeftSidebar = () => {
 
     const logoutHandler = async () => {
         try {
-            const res = await axios.post(`${COMMON_API_END_POINT}/logout`, {}, { withCredentials: true });
+            await axios.post(`${COMMON_API_END_POINT}/logout`, {}, { withCredentials: true });
+        } catch (error) {
+            // Token may be expired — that's fine, we still clear local state
+            console.log("Logout API error (ignored):", error?.response?.status);
+        } finally {
+            disconnectSocket();
+            clearNotifications();
             setUser(null);
             setOtherUsers(null);
             setProfile(null);
             navigate('/login');
-            toast.success(res.data.message);
-        } catch (error) {
-            console.log(error);
+            toast.success("Logged out successfully");
         }
     };
 

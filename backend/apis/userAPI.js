@@ -18,6 +18,18 @@ userRoute.get('/users', async (req, res) => {
     res.status(200).json({ message: "users: ", payload: users })
 });
 
+// get single user profile (with followers & following)
+userRoute.get('/user/:id', async (req, res) => {
+    const user = await UserModel.findById(req.params.id)
+        .select('-password')
+        .populate('followers.userId', 'firstName lastName username profileImageUrl')
+        .populate('following.userId', 'firstName lastName username profileImageUrl');
+    if (!user) {
+        return res.status(404).json({ message: "user not found" });
+    }
+    res.status(200).json({ message: "user profile", payload: user });
+});
+
 // follow user
 userRoute.post("/follow/:userId", verifyToken("USER"), async (req, res) => {
     const followerId = req.user.userId;
@@ -45,12 +57,14 @@ userRoute.post("/follow/:userId", verifyToken("USER"), async (req, res) => {
     await followerUser.save();
     await followingUser.save();
 
-    sendNotification(targetUserId, {
-        type: 'follow',
-        fromUserId: userId,
-        fromUsername: req.user.username,
-        message: `${req.user.username} started following you`
-    });
+    if (followerId !== followingId) {
+        sendNotification(followingId, {
+            type: 'follow',
+            fromUserId: followerId,
+            fromUsername: req.user.username,
+            message: `${req.user.username} started following you`
+        });
+    }
 
     res.status(200).json({ message: "followed successfully" });
 });
