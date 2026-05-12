@@ -115,7 +115,7 @@ const EditProfile = () => {
     const isBusy = loading || uploadingAvatar;
 
     return (
-        <div className='w-[50%] border-l border-r border-orbit-border min-h-screen bg-orbit-bg'>
+        <div className='w-full min-h-screen bg-orbit-bg'>
 
             {/* ── Header ── */}
             <div className='flex items-center gap-5 py-3 px-4 border-b border-orbit-border bg-orbit-bg/80 backdrop-blur-md sticky top-0 z-10'>

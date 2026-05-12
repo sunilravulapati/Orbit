@@ -1,6 +1,9 @@
-export const USER_API_END_POINT = "http://localhost:4000/user-api";
-export const COMMON_API_END_POINT = "http://localhost:4000/common-api";
-export const POST_API_END_POINT = "http://localhost:4000/post-api";
+export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+export const USER_API_END_POINT = `${BASE_URL}/user-api`;
+export const COMMON_API_END_POINT = `${BASE_URL}/common-api`;
+export const POST_API_END_POINT = `${BASE_URL}/post-api`;
+export const ADMIN_API_END_POINT = `${BASE_URL}/admin-api`;
 
 export const timeSince = (timestamp) => {
     let time = Date.parse(timestamp);

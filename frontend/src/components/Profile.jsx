@@ -243,7 +243,7 @@ const Profile = () => {
                 }
             `}</style>
 
-            <div className="profile-root w-[50%] border-l border-r border-orbit-border min-h-screen bg-orbit-bg">
+            <div className="profile-root w-full min-h-screen bg-orbit-bg">
 
                 {/* ── Sticky header ───────────────────────────────────── */}
                 <div className={`sticky-header ${headerVisible ? 'show' : ''} flex items-center gap-3 py-3 px-4 border-b border-orbit-border bg-orbit-bg/95 backdrop-blur sticky top-0 z-20`}>

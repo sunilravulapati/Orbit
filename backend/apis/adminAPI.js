@@ -1,6 +1,6 @@
 import exp from "express";
 import { UserModel } from '../models/UserModel.js'
-import { deleteUser, deletePost,activatePost,activateUser } from '../controllers/admin.js'
+import { deleteUser, deletePost,activatePost,activateUser,getAllPosts } from '../controllers/admin.js'
 import { verifyToken } from "../middleware/verifyToken.js";
 
 export const adminRoute = exp.Router()
@@ -16,6 +16,9 @@ adminRoute.get('/users', verifyToken("ADMIN"),async (req, res) => {
     //return res
     res.status(200).json({ message: "users: ", payload: users })
 })
+
+//get all posts
+adminRoute.get('/posts', verifyToken("ADMIN"), getAllPosts);
 
 //block user
 adminRoute.delete('/del-user/:userId',verifyToken("ADMIN"), deleteUser)

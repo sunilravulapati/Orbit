@@ -1,11 +1,13 @@
 import { io } from 'socket.io-client';
+import { BASE_URL } from './constant';
 
 let socket;
 
 export const connectSocket = (userId) => {
     if (socket?.connected) return socket;
 
-    socket = io('http://localhost:4000', {
+    socket = io(BASE_URL, {
+        query: { userId },
         withCredentials: true,
         reconnection: true,
         reconnectionDelay: 1000,

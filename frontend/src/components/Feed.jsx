@@ -8,7 +8,7 @@ const Feed = () => {
     const tweets = useTweetStore((state) => state.tweets);
 
     return (
-        <div className='w-[50%] border-l border-r border-orbit-border min-h-screen'>
+        <div className='w-full min-h-screen'>
             <CreatePost />
             {tweets === null ? (
                 [...Array(5)].map((_, i) => <TweetSkeleton key={i} />)

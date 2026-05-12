@@ -140,7 +140,7 @@ const RightSidebar = ({ otherUsers }) => {
                 }
             `}</style>
 
-            <div className='rs-root w-[30%] px-4 py-5 sticky top-0 h-screen overflow-y-auto flex flex-col gap-4'>
+            <div className='rs-root hidden lg:flex w-[30%] max-w-sm px-4 py-5 sticky top-0 h-screen overflow-y-auto flex-col gap-4'>
 
                 {/* Search */}
                 <div

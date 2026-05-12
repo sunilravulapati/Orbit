@@ -38,3 +38,12 @@ export const activatePost = (async (req, res) => {
     await PostModel.findByIdAndUpdate(postId, { isActive: true });
     res.json({ message: "Post restored successfully" });
 });
+
+// get all posts for admin (including inactive)
+export const getAllPosts = async (req, res) => {
+    const posts = await PostModel.find()
+        .populate("author", "username firstName lastName profileImageUrl")
+        .sort({ createdAt: -1 });
+
+    res.status(200).json({ message: "all posts", payload: posts });
+};

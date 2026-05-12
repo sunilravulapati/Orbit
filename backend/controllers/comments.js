@@ -40,6 +40,15 @@ export const removeComment = async (req, res) => {
         return res.status(404).json({ message: "Post not found!" });
     }
 
+    const comment = post.comments.find(c => c._id.toString() === commentId);
+    if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (comment.userId.toString() !== req.user.userId && post.author.toString() !== req.user.userId) {
+        return res.status(403).json({ message: "You are not authorized to delete this comment" });
+    }
+
     post.comments = post.comments.filter(
         (comment) => comment._id.toString() !== commentId
     );

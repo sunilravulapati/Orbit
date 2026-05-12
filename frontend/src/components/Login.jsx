@@ -114,7 +114,7 @@ const Login = () => {
                                 your mind?
                             </span>
                         </h1>
-                        <p className='text-orbit-muted mt-4 text-[15px] leading-relaxed'>
+                        <p className='text-orbit-muted mt-15 text-[15px] leading-relaxed'>
                             Join the conversation. Share thoughts,<br />
                             connect with others, stay in the loop.
                         </p>

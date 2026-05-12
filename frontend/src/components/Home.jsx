@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import LeftSidebar from './LeftSidebar'
 import RightSidebar from './RightSidebar'
+import MobileNav from './MobileNav'
 import { Outlet, useNavigate } from "react-router-dom";
 import useOtherUsers from '../hooks/useOtherUsers';
 import useUserStore from '../store/useUserStore';
@@ -23,10 +24,13 @@ const Home = () => {
     useGetMyTweets();
 
     return (
-        <div className='flex justify-between w-[90%] mx-auto min-h-screen'>
+        <div className='flex justify-center w-full max-w-7xl mx-auto min-h-screen relative'>
             <LeftSidebar />
-            <Outlet />
+            <div className='w-full sm:flex-1 lg:max-w-2xl border-x border-orbit-border min-h-screen pb-16 sm:pb-0'>
+                <Outlet />
+            </div>
             <RightSidebar otherUsers={otherUsers} />
+            <MobileNav />
         </div>
     )
 }

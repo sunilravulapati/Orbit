@@ -2,6 +2,7 @@ import React from 'react';
 import { CiHome, CiHashtag, CiUser, CiBookmark } from "react-icons/ci";
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { AiOutlineLogout } from "react-icons/ai";
+import { MdOutlineAdminPanelSettings } from "react-icons/md";
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useUserStore from '../store/useUserStore';
 import useTweetStore from '../store/useTweetStore';
@@ -32,7 +33,7 @@ const LeftSidebar = () => {
         try {
             await axios.post(`${COMMON_API_END_POINT}/logout`, {}, { withCredentials: true });
         } catch (error) {
-            // Token may be expired — that's fine, we still clear local state
+            // Token may be expired
             console.log("Logout API error (ignored):", error?.response?.status);
         } finally {
             disconnectSocket();
@@ -68,6 +69,7 @@ const LeftSidebar = () => {
         },
         { path: `/profile/${user?.userId}`, icon: <CiUser size={20} />, label: 'Profile', matchPath: '/profile' },
         { path: '/bookmarks', icon: <CiBookmark size={20} />, label: 'Bookmarks' },
+        ...(user?.role === 'ADMIN' ? [{ path: '/admin', icon: <MdOutlineAdminPanelSettings size={20} />, label: 'Admin Panel' }] : [])
     ];
 
     const displayName = user?.firstName
@@ -202,11 +204,11 @@ const LeftSidebar = () => {
                 }
             `}</style>
 
-            <div className='ls-root w-[20%] border-r border-orbit-border h-screen sticky top-0 px-3 py-5 flex flex-col bg-orbit-bg'>
+            <div className='ls-root hidden sm:flex w-20 xl:w-[25%] xl:max-w-xs border-r border-orbit-border h-screen sticky top-0 px-2 xl:px-4 py-5 flex-col bg-orbit-bg overflow-y-auto'>
 
                 {/* Logo */}
-                <div className='px-3 mb-6'>
-                    <img className='w-28 rounded-full' src={logo} alt="Orbit" />
+                <div className='px-3 mb-6 flex justify-center xl:justify-start'>
+                    <img className='w-12 xl:w-28 rounded-full' src={logo} alt="Orbit" />
                 </div>
 
                 {/* Nav */}
@@ -220,43 +222,30 @@ const LeftSidebar = () => {
                                 className={`ls-nav-item ${active ? 'active' : 'text-orbit-muted'}`}
                             >
                                 <span className='ls-icon'>{item.icon}</span>
-                                <span>{item.label}</span>
+                                <span className='hidden xl:block'>{item.label}</span>
                             </Link>
                         );
                     })}
 
                     <div className='ls-divider mt-2 mb-1' />
 
-                    <div className='ls-section-label'>Account</div>
+                    <div className='ls-section-label hidden xl:block'>Account</div>
 
                     <div className='ls-logout' onClick={logoutHandler}>
                         <span className='ls-icon'><AiOutlineLogout size={18} /></span>
-                        <span>Logout</span>
+                        <span className='hidden xl:block'>Logout</span>
                     </div>
                 </nav>
 
                 {/* User card at bottom */}
                 <div className='mt-4'>
-                    <Link to={`/profile/${user?.userId}`} className='ls-user-card block mb-3'>
-                        <div className='w-8 h-8 rounded-full bg-orbit-surface border border-orbit-border flex items-center justify-center text-orbit-teal font-bold text-sm overflow-hidden shrink-0'>
-                            {user?.profileImageUrl
-                                ? <img src={user.profileImageUrl} alt="avatar" className='w-full h-full object-cover' />
-                                : <span style={{ fontFamily: 'Sora, sans-serif' }}>{avatarLetter}</span>
-                            }
-                        </div>
-                        <div className='flex-1 min-w-0'>
-                            <p className='text-orbit-text text-[12px] font-semibold truncate leading-tight'>{displayName}</p>
-                            <p className='text-orbit-muted text-[11px] truncate'>@{user?.username || 'you'}</p>
-                        </div>
-                    </Link>
-
                     <button
                         type='button'
                         onClick={handleNewPost}
-                        className='ls-post-btn'
+                        className='ls-post-btn flex items-center justify-center p-3 xl:py-11 xl:px-16 h-12 xl:h-auto rounded-full xl:rounded-14px'
                     >
                         <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
-                        New Post
+                        <span className='hidden xl:inline'>New Post</span>
                     </button>
                 </div>
             </div>

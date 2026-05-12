@@ -37,7 +37,7 @@ const Explore = () => {
     );
 
     return (
-        <div className='w-[50%] border-l border-r border-orbit-border min-h-screen bg-orbit-bg'>
+        <div className='w-full min-h-screen bg-orbit-bg'>
 
             {/* Search header — sticky */}
             <div className='py-3 px-4 border-b border-orbit-border bg-orbit-bg/90 backdrop-blur sticky top-0 z-10'>

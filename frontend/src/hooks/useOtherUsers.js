@@ -22,7 +22,7 @@ const useOtherUsers = () => {
         }
         fetchOtherUsers();
         // eslint-disable-next-line
-    }, []);
+    }, [user?.userId]);
 };
 
 export default useOtherUsers;

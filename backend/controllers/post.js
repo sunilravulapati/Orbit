@@ -56,6 +56,9 @@ export const updatePost = async (req, res) => {
             message: "post not found"
         })
     }
+    if (post.author.toString() !== req.user.userId) {
+        return res.status(403).json({ message: "You are not authorized to update this post" });
+    }
     if (text) {
         post.text = text
     }
@@ -76,6 +79,9 @@ export const deletePost = async (req, res) => {
             message: "post not found"
         })
     }
+    if (post.author.toString() !== req.user.userId) {
+        return res.status(403).json({ message: "You are not authorized to delete this post" });
+    }
     post.isActive = false
     await post.save()
     res.json({
@@ -92,7 +98,7 @@ export const getPosts = async (req, res) => {
     })
     .sort({ createdAt: -1 })
     .populate('author', 'firstName lastName username profileImageUrl')
-    .populate('comments.userId', 'username firstName profileImageUrl') // ✅ add this
+    .populate('comments.userId', 'username firstName profileImageUrl')
 
     res.json({
         message: "user posts",

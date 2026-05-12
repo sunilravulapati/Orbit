@@ -33,7 +33,7 @@ export const verifyToken = (...allowedRoles) => {
             if (err.name === "JsonWebTokenError") {
                 return res.status(401).json({ message: "Invalid token" })
             }
-            //next(err);
+            return res.status(401).json({ message: "Invalid or expired token" });
         }
     }
 }

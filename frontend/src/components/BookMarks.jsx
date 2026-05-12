@@ -119,7 +119,7 @@ const Bookmarks = () => {
                 }
             `}</style>
 
-            <div className='bookmarks-root w-[50%] border-l border-r border-orbit-border min-h-screen bg-orbit-bg'>
+            <div className='bookmarks-root w-full min-h-screen bg-orbit-bg'>
 
                 {/* ── Header ──────────────────────────────────────────── */}
                 <div className='relative flex items-center gap-3 py-3 px-4 bg-orbit-bg/95 backdrop-blur sticky top-0 z-10'>

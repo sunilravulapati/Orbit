@@ -32,7 +32,7 @@ postRoute.get("/post/:postId", async (req, res) => {
 //get all the posts 
 postRoute.get("/all", async (req, res) => {
     const posts = await PostModel.find({ isActive: true })
-        .populate("author", "username firstName profileImageUrl") // 👈 added firstName
+        .populate("author", "username firstName profileImageUrl")
         .populate("comments.userId", "username firstName lastName profileImageUrl")
         .sort({ createdAt: -1 });
 

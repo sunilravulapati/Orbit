@@ -15,7 +15,7 @@ const app = exp()
 
 //cors allowed so that request can be made from other ports
 app.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: [process.env.CLIENT_URL || 'http://localhost:5173'],
     credentials: true // for cookies and tokens
 }))
 

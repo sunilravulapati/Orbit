@@ -11,6 +11,7 @@ import EditProfile from './EditProfile';
 import TweetDetails from './TweetDetails';
 import Hero from './Hero';
 import ErrorBoundary from './ErrorBoundary';
+import AdminDashboard from './AdminDashboard';
 
 const Body = () => {
     const appRouter = createBrowserRouter([
@@ -31,6 +32,7 @@ const Body = () => {
                 { path: "/bookmarks",       element: <Bookmarks /> },
                 { path: "/edit-profile",    element: <EditProfile /> },
                 { path: "/tweet/:id",       element: <TweetDetails /> },
+                { path: "/admin",           element: <AdminDashboard /> },
             ]
         },
         {
