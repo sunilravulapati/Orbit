@@ -63,7 +63,7 @@ const Login = () => {
     return (
         <div className='w-screen h-screen flex items-center justify-center bg-orbit-bg overflow-hidden relative'>
 
-            {/* ── Atmospheric background orbs ── */}
+            {/* Atmospheric background orbs */}
             <div className='absolute inset-0 pointer-events-none'>
                 <div style={{
                     position: 'absolute', top: '-10%', left: '-5%',
@@ -88,7 +88,7 @@ const Login = () => {
 
             <div className='relative z-10 flex items-center justify-center gap-20 w-full max-w-5xl px-8'>
 
-                {/* ── Left: Branding ── */}
+                {/* Left: Branding */}
                 <div className='flex flex-col items-start gap-6 flex-1 max-w-sm'>
                     <div className='flex items-center gap-3'>
                         <img
@@ -136,7 +136,7 @@ const Login = () => {
                     </div>
                 </div>
 
-                {/* ── Right: Form card ── */}
+                {/* Right: Form card */}
                 <div style={{
                     background: 'rgba(30,39,50,0.7)',
                     backdropFilter: 'blur(20px)',
