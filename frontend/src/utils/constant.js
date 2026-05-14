@@ -1,4 +1,4 @@
-export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+export const BASE_URL = import.meta.env.VITE_API_URL || "https://orbit-zaak.onrender.com";
 
 export const USER_API_END_POINT = `${BASE_URL}/user-api`;
 export const COMMON_API_END_POINT = `${BASE_URL}/common-api`;
