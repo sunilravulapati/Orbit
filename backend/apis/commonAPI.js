@@ -18,9 +18,9 @@ commonRouter.post("/login", (async (req, res) => {
     const { token, user } = await login(req.body);
     res.cookie("token", token, {
         httpOnly: true,
-        sameSite: "lax",
-        secure: false,
-        maxAge: 24 * 60 * 60 * 1000 // was expires:"1h" (invalid string), use maxAge in milliseconds (1 day)
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production", // must be true for sameSite: none
+        maxAge: 24 * 60 * 60 * 1000
     });
     res.json({
         message: "Login successful",

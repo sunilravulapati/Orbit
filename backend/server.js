@@ -12,6 +12,7 @@ import { initSocket } from './socket/index.js';
 config()
 
 const app = exp()
+app.set('trust proxy', 1); // Trust the proxy (Render) to allow secure cookies
 
 // cors allowed so that request can be made from other ports
 const allowedOrigins = [
